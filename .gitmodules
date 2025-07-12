@@ -1,3 +1,6 @@
 [submodule "libs/lerobot"]
 	path = libs/lerobot
 	url = https://github.com/huggingface/lerobot.git
+[submodule "libs/gym-aloha"]
+	path = libs/gym-aloha
+	url = https://github.com/huggingface/gym-aloha
