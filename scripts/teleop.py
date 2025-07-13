@@ -1,18 +1,18 @@
+import os
+os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
 from lerobot.teleoperators.so101_leader import SO101LeaderConfig, SO101Leader
 from lerobot.robots.so101_follower import SO101FollowerConfig, SO101Follower
 from lerobot.cameras.configs import ColorMode, Cv2Rotation
 import cv2
 
-import os
-os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
 # paths
 from utils.paths import CALIBS_DIR 
 
 camera_config = {
     "wrist_cam": OpenCVCameraConfig(index_or_path=0, width=640, height=480, fps=30),
-    "top_cam": OpenCVCameraConfig(index_or_path=2, width=640, height=480, fps=30, rotation=Cv2Rotation.NO_ROTATION),
+    "top_cam": OpenCVCameraConfig(index_or_path=1, width=640, height=480, fps=30, rotation=Cv2Rotation.NO_ROTATION),
 }
 
 cam = True

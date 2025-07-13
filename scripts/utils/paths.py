@@ -8,5 +8,6 @@ while not (REPO_ROOT / ".git").exists() and REPO_ROOT != REPO_ROOT.parent:
 CALIBS_DIR = REPO_ROOT / "robot" / "calibrations"
 MODELS_DIR = REPO_ROOT / "models"
 DATASETS_DIR = REPO_ROOT / "datasets"
+POLICIES_DIR = REPO_ROOT / "policies"
 
 HF_NAME = 'jonathm126'
