@@ -9,5 +9,7 @@ CALIBS_DIR = REPO_ROOT / "robot" / "calibrations"
 MODELS_DIR = REPO_ROOT / "models"
 DATASETS_DIR = REPO_ROOT / "datasets"
 POLICIES_DIR = REPO_ROOT / "policies"
+OUTPUTS_DIR = REPO_ROOT / "outputs"
+EVAL_DIR = REPO_ROOT / "eval"
 
 HF_NAME = 'jonathm126'
