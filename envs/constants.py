@@ -1,7 +1,7 @@
 from pathlib import Path
 
-DT = 0.033  # 0.02 ms -> 1/0.2 = 50 hz
 FPS = 30
+DT = 1/FPS  # 0.02 ms -> 1/0.2 = 50 hz
 
 JOINTS = [
         # absolute joint position
@@ -32,8 +32,8 @@ MASTER_GRIPPER_JOINT_CLOSE = -0.174
 MASTER_GRIPPER_JOINT_MID = (MASTER_GRIPPER_JOINT_OPEN + MASTER_GRIPPER_JOINT_CLOSE) / 2
 
 def normalize_master_gripper_position(x):
-    return (x - MASTER_GRIPPER_JOINT_CLOSE) / (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE)
-    
-def unnormalize_master_gripper_position(x):
-    return x * (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE) + MASTER_GRIPPER_JOINT_CLOSE
+        return (x - MASTER_GRIPPER_JOINT_CLOSE) / (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE)
+
+def unnormalize_master_gripper_position(x): 
+        return x * (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE) + MASTER_GRIPPER_JOINT_CLOSE
 
