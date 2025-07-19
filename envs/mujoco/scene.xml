@@ -1,0 +1,50 @@
+<mujoco model = "scene">   
+    <!-- import assets -->
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072" />
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300" />
+        <material name="gray_mat" rgba="0.2 0.2 0.2 1" specular="0.1" shininess="0" reflectance="0.0" />
+        <texture name="wood_tex" type="2d" file="assets/wood_texture.png" />
+        <material name="wood_mat" texture="wood_tex" texuniform="true" texrepeat="4 4" specular="0.01" shininess="0.0" reflectance="0.0" />/
+    </asset>
+
+    <!-- visual settings -->
+    <visual>
+        <headlight diffuse="0.2 0.2 0.2" ambient="0.1 0.1 0.1" specular="0.1 0.1 0.1" />
+        
+        <rgba haze="0.15 0.25 0.35 1" />
+        <global azimuth="160" elevation="-20" />
+        <map fogstart="1.5" fogend="5" force="0.1" znear="0.1"/>
+        <quality shadowsize="4096" offsamples="4"/>
+    </visual>
+
+    <!-- global geoms -->
+    <worldbody>
+        <!-- light -->
+        <light directional="true" castshadow="true"
+            diffuse="0.4 0.4 0.4" specular="0.2 0.2 0.2"
+            pos="1 -1 2" dir="-1 1 -2"/>
+
+        <light directional="true"
+            diffuse="0.2 0.2 0.2" specular="0 0 0"
+            pos="-2 -2 2" dir="1 1 -1"/>
+
+        <light directional="true" castshadow="false"
+            diffuse="0.2 0.2 0.2" specular="0 0 0"
+            pos="-1 -1 2" dir="1 1 -2"/>
+
+
+        <!-- table -->
+        <body name="workspace" pos="0 0 0">
+            <geom type="box" size="0.5 0.5 0.01" material="wood_mat" friction="0.5 0.01 0.001" conaffinity="1" contype="1"/>
+        </body>
+        <body name = "gray_mat">
+            <geom type="box" size="0.25 0.25 0.001" pos="0 0 0.01" material="gray_mat" friction="0.5 0.01 0.001" conaffinity="1" contype="1"/>
+        </body>
+
+        <!-- cameras -->
+        <camera name="top_cam" pos="0 0 0.8"  euler="0 0 3.14159" fovy="42" mode="fixed"/>
+        <camera name="iso_cam" pos="1.2 1.2 1.2" euler="-45 0 45" fovy="35" mode="targetbody" target="gray_mat" />
+        <!-- <camera name="wrist_cam" mode="track" target="so101_new_calib/wrist_cam" pos="0 0 0.2" /> -->
+    </worldbody>
+</mujoco>

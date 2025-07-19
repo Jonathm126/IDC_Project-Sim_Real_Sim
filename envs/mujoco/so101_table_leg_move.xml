@@ -1,0 +1,57 @@
+<mujoco>
+    <!-- global settings -->
+    <include file="defaults.xml"/>
+    <include file="scene.xml"/>
+
+    <asset>
+        <!-- Material for table and meshes -->
+        <material name="blue_plastic" rgba="0.1 0.3 0.7 1"/>
+
+        <!-- CAD meshes -->
+        <mesh name="table_leg_cad" file="table_task/square_table_leg4.stl" scale="0.001 0.001 0.001"/>
+        <mesh name="table_top_cad" file="table_task/square_table_top.stl" scale="0.001 0.001 0.001"/>
+    </asset>
+
+    <worldbody>
+    <body name="so101_root" pos="-0.25 0.0 0.01" quat="1 0 0 0">
+        <include file="so101_new_calib.xml"/>
+    </body>
+        
+        <!-- CAD object 1 -->
+        <body name="table_leg" pos="0.25 0.2 0.05">
+            <joint name="table_leg_joint" type="free" frictionloss="0.001"/>
+            <!-- mass properites -->
+            <inertial pos="0 0 0.0" mass="0.05" diaginertia="0.002 0.002 0.002" />
+            <geom type="mesh" mesh="table_leg_cad" material="blue_plastic" friction="1 0.005 0.0001" conaffinity="1" contype="1" solref="0.002 1" solimp="0.95 0.99 0.001"/>
+            <!-- <geom type="mesh" class="collision" mesh="table_leg_cad" material="blue_plastic" /> -->
+            <!-- define sites of interest for reward -->
+            <site name="leg_tip" pos="0 0 0.062" size="0.015 0.013" type="cylinder" rgba="1 0 0 0.5"/>
+            <!-- <geom condim="4" solimp="2 1 0.01" solref="0.01 1" friction="1 0.005 0.0001" pos="0 0 0" size="0.06 0.01 0.01" type="box" name="red_peg" rgba="1 0 0 1" /> -->
+        </body>
+
+        <!-- CAD object 2 -->
+        <body name="table_top" pos="0.25 -0.2 0.05">
+            <joint name="table_top_joint" type="free" frictionloss="0.001"/>
+            <!-- mass properites -->
+            <inertial pos="0 0 0" mass="0.05" diaginertia="0.002 0.002 0.002" />
+            <geom type="mesh" mesh="table_top_cad" material="blue_plastic" friction="1 0.005 0.0001" conaffinity="1" contype="1" solref="0.002 1" solimp="0.95 0.99 0.001"/>
+            <!-- <geom type="mesh" class="collision"  mesh="table_top_cad" material="blue_plastic" friction="1 0.005 0.0001"/> -->
+            <!-- define sites of interest for reward -->
+            <site name="table_hole_1" pos="0.04 0.045 0.015" size="0.015 0.013" type="cylinder" rgba="1 0 0 0.5"/>
+            <site name="table_hole_2" pos="0.04 -0.07 0.015" size="0.015 0.013" type="cylinder" rgba="1 0 0 0.5"/>
+            <site name="table_hole_3" pos="-0.07 0.045 0.015" size="0.015 0.013" type="cylinder" rgba="1 0 0 0.5"/>
+            <site name="table_hole_4" pos="-0.07 -0.07 0.015" size="0.015 0.013" type="cylinder" rgba="1 0 0 0.5"/>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <position class="sts3215" name="shoulder_pan" joint="shoulder_pan" forcerange="-3.35 3.35" ctrlrange="-1.91986 1.91986"/>
+        <position class="sts3215" name="shoulder_lift" joint="shoulder_lift" forcerange="-3.35 3.35" ctrlrange="-1.74533 1.74533"/>
+        <position class="sts3215" name="elbow_flex" joint="elbow_flex" forcerange="-3.35 3.35" ctrlrange="-1.69 1.69"/>
+        <position class="sts3215" name="wrist_flex" joint="wrist_flex" forcerange="-3.35 3.35" ctrlrange="-1.65806 1.65806"/>
+        <position class="sts3215" name="wrist_roll" joint="wrist_roll" forcerange="-3.35 3.35" ctrlrange="-2.74385 2.84121"/>
+        <position class="sts3215" name="gripper" joint="gripper" forcerange="-3.35 3.35" ctrlrange="-0.17453 1.74533"/>
+    </actuator>
+    <equality/>
+
+</mujoco>
