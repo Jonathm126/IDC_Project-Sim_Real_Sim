@@ -15,7 +15,7 @@ from so101_env_tasks import TableLegMoveTask
 from gym_aloha.env import AlohaEnv
 from gym_aloha.utils import sample_box_pose, sample_insertion_pose
 
-class SO101Env(AlohaEnv):
+class SO101Env(gym.Env):
     # this is a master environemnt for the SO101 tasks
     metadata = {"render_modes": ["rgb_array"], "render_fps": 30}
     
@@ -36,15 +36,14 @@ class SO101Env(AlohaEnv):
         '''
         
         # build the env super class
-        super().__init__(
-        task                 = task,
-        obs_type             = obs_type,
-        render_mode          = render_mode,
-        observation_width    = observation_width,
-        observation_height   = observation_height,
-        visualization_width  = visualization_width,
-        visualization_height = visualization_height,
-        )
+        super().__init__()
+        self.task                 = task
+        self.obs_type             = obs_type
+        self.render_mode          = render_mode
+        self.observation_width    = observation_width
+        self.observation_height   = observation_height
+        self.visualization_width  = visualization_width
+        self.visualization_height = visualization_height
         
         # make gym env and task
         self._env = self._make_env_task(self.task)
@@ -155,7 +154,7 @@ class SO101Env(AlohaEnv):
         # make step TODO are we sure about the order of returns
         _, reward, _, raw_obs = self._env.step(action)  
         
-        terminated = is_success = self.task.sucess
+        terminated = is_success = reward == 10
         info = {"is_success": is_success}
         
         observation = self._format_raw_obs(raw_obs)
@@ -176,3 +175,9 @@ class SO101Env(AlohaEnv):
         )
         image = self._env.physics.render(height=height, width=width, camera_id="top_cam")
         return image
+    
+    def reset(self, seed=None, options=None):
+        raise NotImplementedError
+    
+    def close(self):
+        pass
