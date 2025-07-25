@@ -22,7 +22,10 @@ ACTIONS = [
         # normalized gripper position 0: close, 1: open
         'gripper']
 
-START_ARM_POSE = [0] *7
+START_ARM_POSE = [0] *6 #TODO
+
+JOINTS_MAX = 2
+JOINTS_MIN = -2
 
 MUJOCO_DIR = Path(__file__).parent.resolve() / "mujoco" 
 

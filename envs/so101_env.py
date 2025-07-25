@@ -6,14 +6,10 @@ from dm_control.rl import control
 from gymnasium import spaces
 
 # my constants
-from so101_env_utils import ACTIONS, DT, JOINTS, MUJOCO_DIR
+from so101_env_utils import ACTIONS, DT, JOINTS, MUJOCO_DIR, JOINTS_MAX, JOINTS_MIN, SO101OBSTYPES, SO101TASKS
 
 # my tasks
-from so101_env_tasks import TableLegMoveTask
-
-#gym_aloha 
-from gym_aloha.env import AlohaEnv
-from gym_aloha.utils import sample_box_pose, sample_insertion_pose
+from so101_env_tasks import TableLegAssembleTask
 
 class SO101Env(gym.Env):
     # this is a master environemnt for the SO101 tasks
@@ -48,73 +44,54 @@ class SO101Env(gym.Env):
         # make gym env and task
         self._env = self._make_env_task(self.task)
         
+        # make sure the observation type is legal
+        assert self.obs_type in SO101OBSTYPES, f"Invalid obs_type: {self.obs_type}"
+        assert self.task in SO101TASKS, f"Invalid task: {self.task}"
+        
         # build the observation vector based on the different observation modes
-        if self.obs_type == "pixels":
+        if self.obs_type == "pixels" or "pixels_agent_pos":
             self.observation_space = spaces.Dict(
                 {
                     "pixels": spaces.Dict(
                         {
                             "top_cam": spaces.Box(
-                                low=0,
-                                high=255,
-                                shape=(self.observation_height, self.observation_width, 3),
-                                dtype=np.uint8,
+                                low   = 0,
+                                high  = 255,
+                                shape = (self.observation_height, self.observation_width, 3),
+                                dtype = np.uint8,
                             ),
                             "wrist_cam": spaces.Box(
-                                low=0,
-                                high=255,
-                                shape=(self.observation_height, self.observation_width, 3),
-                                dtype=np.uint8,
+                                low   = 0,
+                                high  = 255,
+                                shape = (self.observation_height, self.observation_width, 3),
+                                dtype = np.uint8,
                             ),
                         }
                     ),
                 }
             )
         
-        elif self.obs_type == "pixels_agent_pos":
-            self.observation_space = spaces.Dict(
-                {
-                    "pixels": spaces.Dict(
-                        {
-                            "top_cam": spaces.Box(
-                                low=0,
-                                high=255,
-                                shape=(self.observation_height, self.observation_width, 3),
-                                dtype=np.uint8,
-                            ),
-                            "wrist_cam": spaces.Box(
-                                low=0,
-                                high=255,
-                                shape=(self.observation_height, self.observation_width, 3),
-                                dtype=np.uint8,
-                            ),
-                        }
-                    ),
-                    "agent_pos": spaces.Box(
-                        low=-1000.0,
-                        high=1000.0,
-                        shape=(len(JOINTS),),
-                        dtype=np.float64,
-                    ),
-                }
-            )
+        if self.obs_type == "pixels_agent_pos":
+            self.observation_space["agent_pos"] = spaces.Box( 
+                                                low   = JOINTS_MIN,
+                                                high  = JOINTS_MAX,
+                                                shape = (len(JOINTS),),
+                                                dtype = np.float64,
+                                            )
         
-        elif self.obs_type == "pixels_agent_pos_state":
-            raise NotImplementedError()
-        
-        else:
+        if self.obs_type == "pixels_agent_pos_state":
             raise NotImplementedError()
         
         # define action space TODO why not the same as obs space?
-        self.action_space = spaces.Box(low=-1, high=1, shape=(len(ACTIONS),), dtype=np.float32)
+        self.action_space = spaces.Box(low=JOINTS_MIN, high=JOINTS_MAX, shape=(len(ACTIONS),), dtype=np.float32)
     
     def _make_env_task(self, task_name):
         # build the env according to the task type
         # table leg moving task
-        if task_name == 'TableLegMoveTask':
-            xml_path = MUJOCO_DIR / 'so101_table_leg_move.xml'
+        if task_name == 'TableLegAssembleTask':
+            xml_path = MUJOCO_DIR / 'so101_table_leg_assemble.xml'
             physics = mujoco.Physics.from_xml_path(str(xml_path))
-            task = TableLegMoveTask(observation_height = self.observation_height,
+            task = TableLegAssembleTask(observation_height = self.observation_height,
                                     observation_width = self.observation_width)
         else:
             raise NotImplementedError()
@@ -126,7 +103,7 @@ class SO101Env(gym.Env):
     
     def _format_raw_obs(self, raw_obs):
         # for pixels only return the images
-        if self.obs_type == "pixels":
+        if self.obs_type == "pixels" or "pixels_agent_pos":
             obs = {
                 "pixels": {
                     "top_cam": raw_obs["images"]["top_cam"].copy(),
@@ -134,18 +111,13 @@ class SO101Env(gym.Env):
                 },
             }
         # for pixels and agent state only return the images and agent pos
-        elif self.obs_type == "pixels_agent_pos":
-            obs = {
-                "pixels": {
-                    "top_cam": raw_obs["images"]["top_cam"].copy(),
-                    "wrist_cam": raw_obs["images"]["wrist_cam"].copy(),
-                },
-                "agent_pos": raw_obs["qpos"],
-            }
+        if self.obs_type == "pixels_agent_pos":
+            obs['agent_pos'] = raw_obs["qpos"]
+        
+        # other cases not implemented
         elif self.obs_type == "pixels_agent_pos_state":
             raise NotImplementedError()
-        else:
-            raise NotImplementedError()
+        
         return obs
     
     def step(self, action):
@@ -154,11 +126,9 @@ class SO101Env(gym.Env):
         # make step TODO are we sure about the order of returns
         _, reward, _, raw_obs = self._env.step(action)  
         
-        terminated = is_success = reward == 10
+        terminated = is_success = reward == self._env.task.max_reward
         info = {"is_success": is_success}
-        
         observation = self._format_raw_obs(raw_obs)
-        
         truncated = False
         
         return observation, reward, terminated, truncated, info
@@ -177,7 +147,22 @@ class SO101Env(gym.Env):
         return image
     
     def reset(self, seed=None, options=None):
-        raise NotImplementedError
+        super().reset(seed=seed)
+        # set seed
+        if seed is not None:
+            self._env.task.random.seed(seed)
+            self._env.task._random = np.random.RandomState(seed)
+        
+        # reset env
+        raw_obs = self._env.reset()
+        observation = self._format_raw_obs(raw_obs.observation)
+        info = {"is_success": False}
+        
+        return observation, info
     
     def close(self):
         pass
+    
+    def get_joint_range(self):
+        # get the range of the robot joints
+        return self._env.task.joint_range
