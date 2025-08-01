@@ -3,7 +3,7 @@ import collections
 import numpy as np
 from dm_control.suite import base
 
-from so101_env_utils import START_ARM_POSE
+from envs.so101_env_utils import START_ARM_POSE
 
 class SO101Task(base.Task):
     def __init__(self, random=None, observation_height = 480, observation_width = 640):
@@ -56,11 +56,8 @@ class TableLegAssembleTask(SO101Task):
             physics.named.data.qpos[self.actuators_ids] = START_ARM_POSE
             np.copyto(physics.data.ctrl, START_ARM_POSE)
             
-            # get joint range
-            self.joint_range = physics.model.jnt_range[self.actuators_ids]
-            
             # set peg and table pose TODO set seed
-            rng = np.random.default_rng(seed = self.random)
+            rng = self.random
             physics.named.data.qpos['table_leg_joint'][:3] = [rng.uniform(0, 0.25), rng.uniform(-0.25, 0.25), 0.05]
             physics.named.data.qpos['table_top_joint'][:3] = [rng.uniform(0, 0.25), rng.uniform(-0.25, 0.25), 0.05]
         

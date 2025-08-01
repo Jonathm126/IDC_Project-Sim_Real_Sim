@@ -6,7 +6,7 @@ import numpy as np
 
 # lerobot
 from lerobot.envs.configs import EnvConfig
-from lerobot.scripts.rl.gym_manipulator import ConvertToLeRobotObservation, ResetWrapper, BatchCompatibleWrapper, TorchActionWrapper
+from lerobot.scripts.rl.gym_manipulator import ConvertToLeRobotObservation, BatchCompatibleWrapper, TorchActionWrapper, TimeLimitWrapper
 
 # lerobot contsts
 from lerobot.configs.types import FeatureType, PolicyFeature
@@ -17,8 +17,8 @@ from envs.so101_env_utils import SO101TASKS, SO101OBSTYPES
 from envs.so101_env import SO101Env
 
 
-@EnvConfig.register_subclass("so101")
-@dataclass
+@dataclass(kw_only=True)
+# @EnvConfig.register_subclass("so101")
 class SO101EnvConfig(EnvConfig):
     """Parametrers for the SO101Env:
         Task: can be one of the SO101Tasks
@@ -30,8 +30,8 @@ class SO101EnvConfig(EnvConfig):
     """
     # define general config params
     task          : str
-    obs_type      : str
     device        : str
+    obs_type      : str
     fps           : int  = 30
     episode_length: int  = 400
     control_time_s: int | None = None
@@ -90,7 +90,7 @@ class SO101EnvConfig(EnvConfig):
             "max_episode_steps": self.episode_length,
         }
 
-def make_so101_env(cfg: SO101EnvConfig):
+def make_so101_env(cfg: SO101EnvConfig, torch_actions):
     """ Builds SO101Env from cfg."""
     env = SO101Env(
         task                 = cfg.task,
@@ -105,24 +105,13 @@ def make_so101_env(cfg: SO101EnvConfig):
     # convert to lerobot policy structure
     env = ConvertToLeRobotObservation(env, cfg.device)
     
-    # time limiting wrapper
-    # if cfg.control_time_s:
-    #     env = TimeLimitWrapper(env=env, control_time_s=cfg.control_time_s, fps=cfg.fps)
-    
-    # if teleop_device:
-    #     env = GearedLeaderControlWrapper(
-    #         env=env,
-    #         teleop_device=teleop_device,
-    #         end_effector_step_sizes=cfg.robot.end_effector_step_sizes,
-    #         use_gripper=cfg.wrapper.use_gripper,
-    #     )
-
-    
-    # add wrapper for graceful reset
-    env = ResetWrapper(env, cfg.reset_pose, cfg.reset_time_s)
-    
     # add wrappers to convert to torch batches
     env = BatchCompatibleWrapper(env)
-    env = TorchActionWrapper(env, device = cfg.device)
+    if torch_actions:
+        env = TorchActionWrapper(env, device = cfg.device)  
+    
+    # time limiter
+    if cfg.control_time_s is not None:
+        env = TimeLimitWrapper(env, cfg.control_time_s, cfg.fps)
     
     return env

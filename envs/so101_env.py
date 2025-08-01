@@ -6,10 +6,10 @@ from dm_control.rl import control
 from gymnasium import spaces
 
 # my constants
-from so101_env_utils import ACTIONS, DT, JOINTS, MUJOCO_DIR, JOINTS_MAX, JOINTS_MIN, SO101OBSTYPES, SO101TASKS
+from envs.so101_env_utils import ACTIONS, DT, JOINTS, MUJOCO_DIR, JOINTS_MAX, JOINTS_MIN, SO101OBSTYPES, SO101TASKS
 
 # my tasks
-from so101_env_tasks import TableLegAssembleTask
+from envs.so101_env_tasks import TableLegAssembleTask
 
 class SO101Env(gym.Env):
     # this is a master environemnt for the SO101 tasks
@@ -84,6 +84,7 @@ class SO101Env(gym.Env):
         
         # define action space TODO why not the same as obs space?
         self.action_space = spaces.Box(low=JOINTS_MIN, high=JOINTS_MAX, shape=(len(ACTIONS),), dtype=np.float32)
+        self.mujoco_actuators_names = ['shoulder_pan', 'shoulder_lift', 'elbow_flex', 'wrist_flex', 'wrist_roll', 'gripper']
     
     def _make_env_task(self, task_name):
         # build the env according to the task type
@@ -96,10 +97,14 @@ class SO101Env(gym.Env):
         else:
             raise NotImplementedError()
         
-        # finally build the env itself, time limit is sent to inf? TODO
+        # finally build the env itself
         env = control.Environment(physics, task, float("inf"), control_timestep=DT, n_sub_steps=None, flat_observation=False)
         
         return env
+    
+    def get_joint_range(self):
+        actuators_ids = [self._env.physics.model.name2id(jid,'joint') for jid in self.mujoco_actuators_names]
+        return self._env.physics.model.jnt_range[actuators_ids]
     
     def _format_raw_obs(self, raw_obs):
         # for pixels only return the images
@@ -143,7 +148,7 @@ class SO101Env(gym.Env):
             if visualize
             else (self.observation_width, self.observation_height)
         )
-        image = self._env.physics.render(height=height, width=width, camera_id="top_cam")
+        image = self._env.physics.render(height=height, width=width, camera_id="iso_cam")
         return image
     
     def reset(self, seed=None, options=None):
@@ -162,7 +167,3 @@ class SO101Env(gym.Env):
     
     def close(self):
         pass
-    
-    def get_joint_range(self):
-        # get the range of the robot joints
-        return self._env.task.joint_range
