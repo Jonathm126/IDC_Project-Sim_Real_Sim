@@ -1,5 +1,8 @@
 import time
 import numpy as np
+from lerobot.motors.motors_bus import MotorNormMode
+from lerobot.teleoperators import Teleoperator
+
 
 def move_robot_to_pose(robot, target_pose, duration_sec=1.0, fps=30):
     dt = 1.0 / fps
@@ -25,6 +28,19 @@ def move_robot_to_pose(robot, target_pose, duration_sec=1.0, fps=30):
         robot.send_action(action_dict)
         time.sleep(dt)
 
+
+def norm_modes_to_ranges(teleop:Teleoperator):
+    ''' Get the teleoperator's joint ranges as a list of min and max'''
+    norm_modes = [motor.norm_mode for _,motor in teleop.bus.motors.items()]
+    ranges = []
+    for mode in norm_modes:
+        if mode == MotorNormMode.RANGE_M100_100:
+            ranges.append((-100.0, 100.0))
+        elif mode == MotorNormMode.RANGE_0_100:
+            ranges.append((0.0, 100.0))
+        else:
+            raise ValueError(f"Unknown norm_mode: {mode}")
+    return np.array(ranges, dtype=np.float32)
 
 class JointSpaceNormalizer:
     """Maps between MuJoCo joint space and real robot joint space using calibration."""
@@ -63,12 +79,12 @@ class JointSpaceNormalizer:
         back = self.robot_to_mujoco(self.mujoco_to_robot(qpos))
         return float(np.abs(qpos - back).max())
 
-def synthetic_leader_dataset(teleop, n_steps=500, seed=0):
+def synthetic_leader_dataset(leader_ranges, n_steps=500, seed=0):
     """
-    Generate synthetic leader joint positions based on real teleop calibration.
+    Generate synthetic leader joint positions using the leader's normalized ranges.
 
     Args:
-        teleop: object with `.calibration` dict
+        leader_ranges: a list of tuples which are the range per joint
         n_steps: number of steps to generate
         seed: RNG seed for reproducibility
     Returns:
@@ -76,42 +92,37 @@ def synthetic_leader_dataset(teleop, n_steps=500, seed=0):
     """
     rng = np.random.default_rng(seed)
 
-    calib = teleop.calibration
-    joint_mins = np.array([c.range_min for c in calib.values()], dtype=np.float32)
-    joint_maxs = np.array([c.range_max for c in calib.values()], dtype=np.float32)
-    offsets    = np.array([c.homing_offset for c in calib.values()], dtype=np.float32)
+    # Use normalization ranges (e.g., [-100,100] or [0,100])
+    lows, highs = np.array([r[0] for r in leader_ranges], dtype=np.float32), \
+                np.array([r[1] for r in leader_ranges], dtype=np.float32)
 
     t = np.linspace(0, 2 * np.pi, n_steps)
     synthetic = []
-    for i, (low, high, offset) in enumerate(zip(joint_mins, joint_maxs, offsets)):
+    for i, (low, high) in enumerate(zip(lows, highs)):
         amp = (high - low) / 2
         mid = (high + low) / 2
         vals = mid + amp * np.sin(t + rng.uniform(0, 2*np.pi))
         vals += rng.normal(0, amp * 0.05, size=n_steps)  # add small noise
-        vals += offset  # include homing offset
         synthetic.append(vals)
 
     return np.stack(synthetic, axis=1)  # (n_steps, n_joints)
 
-
-def sweep_leader_dataset(teleop, steps_per_axis=200, center_pause_steps=20):
+def sweep_leader_dataset(leader_ranges, steps_per_axis=200, center_pause_steps=20):
     """
     Generate a sweep dataset where each joint is moved from min->max and back to center,
-    one axis at a time.
+    one axis at a time, using the leader's normalized ranges.
 
     Args:
-        teleop: object with `.calibration` dict
+        leader_ranges: a list of tuples which are the range per joint
         steps_per_axis: number of steps to go from min to max for each axis
         center_pause_steps: how many steps to hold at the center before switching axis
     Returns:
         np.ndarray of shape (n_steps_total, n_joints)
     """
-    calib = teleop.calibration
-    joint_mins = np.array([c.range_min for c in calib.values()], dtype=np.float32)
-    joint_maxs = np.array([c.range_max for c in calib.values()], dtype=np.float32)
-    offsets    = np.array([c.homing_offset for c in calib.values()], dtype=np.float32)
+    joint_mins = np.array([low for (low, _) in leader_ranges], dtype=np.float32)
+    joint_maxs = np.array([high for (_, high) in leader_ranges], dtype=np.float32)
 
-    centers = (joint_mins + joint_maxs) / 2 + offsets
+    centers = (joint_mins + joint_maxs) / 2
     n_joints = len(joint_mins)
     dataset = []
 
@@ -121,9 +132,7 @@ def sweep_leader_dataset(teleop, steps_per_axis=200, center_pause_steps=20):
         dataset.extend([pose.copy()] * center_pause_steps)
 
         # Sweep from min → max
-        sweep_up = np.linspace(joint_mins[j] + offsets[j],
-                                joint_maxs[j] + offsets[j],
-                                steps_per_axis)
+        sweep_up = np.linspace(joint_mins[j], joint_maxs[j], steps_per_axis)
         for val in sweep_up:
             pose = centers.copy()
             pose[j] = val

@@ -1,3 +1,4 @@
+import numpy as np
 from pathlib import Path
 
 DT = 0.034  # 0.002 ms physics * 17 = 30 hz
@@ -22,6 +23,15 @@ ACTIONS = [
         # normalized gripper position 0: close, 1: open
         'gripper']
 
+SO101_LEADER_JOINT_RANGE = np.array([
+        [-100.0, 100.0],  # shoulder_pan
+        [-100.0, 100.0],  # shoulder_lift
+        [-100.0, 100.0],  # elbow_flex
+        [-100.0, 100.0],  # wrist_flex
+        [-100.0, 100.0],  # wrist_roll
+        [   0.0, 100.0],  # gripper
+], dtype=np.float32)
+
 START_ARM_POSE = [0] *6 #TODO
 
 JOINTS_MAX = 2
@@ -29,15 +39,15 @@ JOINTS_MIN = -2
 
 MUJOCO_DIR = Path(__file__).parent.resolve() / "mujoco" 
 
-MASTER_GRIPPER_JOINT_OPEN = 1.75
-MASTER_GRIPPER_JOINT_CLOSE = -0.174
-MASTER_GRIPPER_JOINT_MID = (MASTER_GRIPPER_JOINT_OPEN + MASTER_GRIPPER_JOINT_CLOSE) / 2
+# MASTER_GRIPPER_JOINT_OPEN = 1.75
+# MASTER_GRIPPER_JOINT_CLOSE = -0.174
+# MASTER_GRIPPER_JOINT_MID = (MASTER_GRIPPER_JOINT_OPEN + MASTER_GRIPPER_JOINT_CLOSE) / 2
 
-def normalize_master_gripper_position(x):
-        return (x - MASTER_GRIPPER_JOINT_CLOSE) / (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE)
+# def normalize_master_gripper_position(x):
+#         return (x - MASTER_GRIPPER_JOINT_CLOSE) / (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE)
 
-def unnormalize_master_gripper_position(x): 
-        return x * (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE) + MASTER_GRIPPER_JOINT_CLOSE
+# def unnormalize_master_gripper_position(x): 
+#         return x * (MASTER_GRIPPER_JOINT_OPEN - MASTER_GRIPPER_JOINT_CLOSE) + MASTER_GRIPPER_JOINT_CLOSE
 
 SO101TASKS = ["TableLegAssembleTask", "TableLegMoveTask"]
 SO101OBSTYPES = ["pixels", "pixels_agent_pos", "pixels_agent_pos_state"]

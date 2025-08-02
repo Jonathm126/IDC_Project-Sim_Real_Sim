@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass, field
 import numpy as np
+import numpy.typing as npt
 
 # lerobot
 from lerobot.envs.configs import EnvConfig
@@ -13,7 +14,7 @@ from lerobot.configs.types import FeatureType, PolicyFeature
 from lerobot.constants import ACTION, OBS_ENV_STATE, OBS_IMAGE, OBS_IMAGES, OBS_STATE
 
 # my code
-from envs.so101_env_utils import SO101TASKS, SO101OBSTYPES
+from envs.so101_env_utils import SO101TASKS, SO101OBSTYPES, ACTIONS, JOINTS
 from envs.so101_env import SO101Env
 
 
@@ -26,7 +27,7 @@ class SO101EnvConfig(EnvConfig):
         episode_length: in steps
         control_time_s: optional, time limit in sec
         reset_time_s: optional, reset time between episodes in sec
-        reset_pose: optional, pose to reset to
+        external_joint_ranges: list(tuple(float, float)) of joint space range to map to (e.g. physical arm range) 
     """
     # define general config params
     task          : str
@@ -36,17 +37,17 @@ class SO101EnvConfig(EnvConfig):
     episode_length: int  = 400
     control_time_s: int | None = None
     reset_time_s  : int | None = None
-    reset_pose    : np.ndarray | None = None
     render_mode   : str = "rgb_array"
     observation_width    :int = 640
     observation_height   :int = 480
     visualization_width  :int = 640
     visualization_height :int = 480
+    external_joint_ranges: npt.NDArray | None = None
     
     # the minimal feature is the action
     features: dict[str, PolicyFeature] = field(
         default_factory=lambda: {
-            "action": PolicyFeature(type=FeatureType.ACTION, shape=(6,))
+            "action": PolicyFeature(type=FeatureType.ACTION, shape=(len(ACTIONS),))
         }
     )
     
@@ -76,11 +77,20 @@ class SO101EnvConfig(EnvConfig):
         
         # add robot state feature
         if self.obs_type in["pixels_agent_pos"]:
-            self.features["agent_pos"] = PolicyFeature(type=FeatureType.STATE, shape=(6,))
+            self.features["agent_pos"] = PolicyFeature(type=FeatureType.STATE, shape=(len(JOINTS),))
         
         # add env state feature   
         if self.obs_type in["pixels_agent_pos_state"]:
             raise NotImplementedError
+        
+        # if supplied with a list of external joint space ranges to map to
+        if self.external_joint_ranges is not None:
+            # validate dimensions
+            if self.external_joint_ranges.ndim != 2 or self.external_joint_ranges.shape[0] != len(ACTIONS):
+                raise ValueError(f"external_joint_ranges must have {len(ACTIONS)} entries with (min,max) for each")
+            # check min <= max
+            if np.any(self.external_joint_ranges[:, 0] > self.external_joint_ranges[:, 1]):
+                raise ValueError("All external_joint_ranges must satisfy min <= max")
 
     @property
     def gym_kwargs(self) -> dict:
@@ -90,7 +100,7 @@ class SO101EnvConfig(EnvConfig):
             "max_episode_steps": self.episode_length,
         }
 
-def make_so101_env(cfg: SO101EnvConfig, torch_actions):
+def make_so101_env(cfg: SO101EnvConfig, torch_actions: bool, lerobot_obs: bool):
     """ Builds SO101Env from cfg."""
     env = SO101Env(
         task                 = cfg.task,
@@ -99,15 +109,17 @@ def make_so101_env(cfg: SO101EnvConfig, torch_actions):
         observation_width    = cfg.observation_width,
         observation_height   = cfg.observation_height,
         visualization_width  = cfg.visualization_width,
-        visualization_height = cfg.visualization_height
+        visualization_height = cfg.visualization_height,
+        external_joint_ranges = cfg.external_joint_ranges
     )
     
     # convert to lerobot policy structure
-    env = ConvertToLeRobotObservation(env, cfg.device)
+    if lerobot_obs:
+        env = ConvertToLeRobotObservation(env, cfg.device)
     
-    # add wrappers to convert to torch batches
-    env = BatchCompatibleWrapper(env)
+    # add wrappers to convert to torch batchess
     if torch_actions:
+        env = BatchCompatibleWrapper(env)
         env = TorchActionWrapper(env, device = cfg.device)  
     
     # time limiter

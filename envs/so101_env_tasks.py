@@ -52,14 +52,18 @@ class TableLegAssembleTask(SO101Task):
         """Sets the state of the environment at the start of each episode."""
         with physics.reset_context():
             # set arm pose
-            self.actuators_ids = [physics.model.name2id(jid,'joint') for jid in self.actuators_names]
-            physics.named.data.qpos[self.actuators_ids] = START_ARM_POSE
-            np.copyto(physics.data.ctrl, START_ARM_POSE)
+
+            # TODO set start pose 
             
-            # set peg and table pose TODO set seed
+            # set peg and table pose
             rng = self.random
             physics.named.data.qpos['table_leg_joint'][:3] = [rng.uniform(0, 0.25), rng.uniform(-0.25, 0.25), 0.05]
             physics.named.data.qpos['table_top_joint'][:3] = [rng.uniform(0, 0.25), rng.uniform(-0.25, 0.25), 0.05]
+            
+            # set sites to clear
+            self.sites = ['leg_tip', 'table_hole_1', 'table_hole_2', 'table_hole_3', 'table_hole_4']
+            for site in self.sites:
+                physics.named.model.site_rgba[site, 3] = 0.0
         
         # reset reward history
         self.history = {
