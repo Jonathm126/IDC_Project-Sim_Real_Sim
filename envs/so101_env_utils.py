@@ -1,6 +1,7 @@
 import numpy as np
 from pathlib import Path
 
+# DT = 0.02  # 0.002 ms physics * 17 = 30 hz
 DT = 0.034  # 0.002 ms physics * 17 = 30 hz
 
 JOINTS = [

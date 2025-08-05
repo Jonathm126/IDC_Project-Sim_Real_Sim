@@ -17,25 +17,27 @@ class SO101Env(gym.Env):
     
     def __init__(
         self,
-        task    : str,
+        task_name    : str,
         obs_type: str,
         render_mode          = "rgb_array",
         observation_width    = 640,
         observation_height   = 480,
         visualization_width  = 640,
         visualization_height = 480,
-        external_joint_ranges = None
+        external_joint_ranges = None,
+        joint_init_pose       = None
         ):
         ''' Builds the SO101 gym env.
             task = 'TableLegMoveTask', 'TableLegAssembleTask'
             obs_type = 'pixels': only images, 'pixels_agent_pos': images and robot pose, 'pixels_agent_pos_state': privleged state incl. extra positions
             render_mode must be 'rgb_array'
             external_joint_ranges: optional, range of joints to map to
+            joint_init_pose: optional, joint pos to start (in global coordinates - will be mapped)
         '''
         
         # build the env super class
         super().__init__()
-        self.task                  = task
+        self.task_name             = task_name
         self.obs_type              = obs_type
         self.render_mode           = render_mode
         self.observation_width     = observation_width
@@ -45,11 +47,11 @@ class SO101Env(gym.Env):
         self.external_joint_ranges = external_joint_ranges
         
         # make gym env and task
-        self._env = self._make_env_task(self.task)
+        self._env = self._make_env_task(self.task_name)
         
         # make sure the observation type is legal
         assert self.obs_type in SO101OBSTYPES, f"Invalid obs_type: {self.obs_type}"
-        assert self.task in SO101TASKS, f"Invalid task: {self.task}"
+        assert self.task_name in SO101TASKS, f"Invalid task: {self.task_name}"
         
         # build the observation vector based on the different observation modes
         if self.obs_type == "pixels" or "pixels_agent_pos":
@@ -85,17 +87,22 @@ class SO101Env(gym.Env):
         if self.obs_type == "pixels_agent_pos_state":
             raise NotImplementedError()
         
-        # define action space TODO why not the same as obs space?
+        # define action space 
         self.action_space = spaces.Box(low=JOINTS_MIN, high=JOINTS_MAX, shape=(len(ACTIONS),), dtype=np.float32)
         self.mujoco_actuators_names = ['shoulder_pan', 'shoulder_lift', 'elbow_flex', 'wrist_flex', 'wrist_roll', 'gripper']
         
         # define mapping between mj and external joint space
         self.mujoco_joint_ranges = self._get_mj_joint_range()
-        
+                
         # if external = internal (no map) identity mapping
         if self.external_joint_ranges is None:
             self.external_joint_ranges = self.mujoco_joint_ranges
 
+        # set start arm position
+        if joint_init_pose is not None:
+            joint_init_pose = self._external_to_mujoco(joint_init_pose)
+            assert hasattr(self._env.task, "start_pose"), "Task must define start_pose"
+            self._env.task.start_pose = joint_init_pose
     
     def _make_env_task(self, task_name):
         # build the env according to the task type
@@ -105,6 +112,7 @@ class SO101Env(gym.Env):
             physics = mujoco.Physics.from_xml_path(str(xml_path))
             task = TableLegAssembleTask(observation_height = self.observation_height,
                                     observation_width = self.observation_width)
+            
         else:
             raise NotImplementedError()
         
@@ -175,7 +183,7 @@ class SO101Env(gym.Env):
         image = self._env.physics.render(height=height, width=width, camera_id="iso_cam")
         return image
     
-    def reset(self, seed=None, options=None, reset_pose = None):
+    def reset(self, seed=None, options=None):
         super().reset(seed=seed, options=options)
         # set seed
         if seed is not None:

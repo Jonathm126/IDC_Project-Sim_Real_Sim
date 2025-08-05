@@ -10,6 +10,8 @@ class SO101Task(base.Task):
         super().__init__(random=random)
         self.observation_height = observation_height
         self.observation_width = observation_width
+        # note that this parameter is set extenrally!
+        self.start_pose = None
         
         # names
         self.actuators_names = ['shoulder_pan', 'shoulder_lift', 'elbow_flex', 'wrist_flex', 'wrist_roll', 'gripper']
@@ -44,16 +46,20 @@ class SO101Task(base.Task):
         raise NotImplementedError
 
 class TableLegAssembleTask(SO101Task):
-    def __init__(self, random = None, observation_height = 480, observation_width = 640):
+    def __init__(self, random = None, observation_height = 480, observation_width = 640, start_pose = None):
         super().__init__(random, observation_height, observation_width)
         self.max_reward = 1
     
     def initialize_episode(self, physics):
         """Sets the state of the environment at the start of each episode."""
         with physics.reset_context():
+            # if the start pose has belfen set externally:s
+            start_pose = self.start_pose if self.start_pose is not None else START_ARM_POSE
+            
             # set arm pose
-
-            # TODO set start pose 
+            self.actuators_ids = [physics.model.name2id(jid,'joint') for jid in self.actuators_names]
+            physics.named.data.qpos[self.actuators_ids] = start_pose
+            np.copyto(physics.data.ctrl, start_pose)            
             
             # set peg and table pose
             rng = self.random
