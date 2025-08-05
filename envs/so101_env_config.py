@@ -28,6 +28,7 @@ class SO101EnvConfig(EnvConfig):
         control_time_s: optional, time limit in sec
         reset_time_s: optional, reset time between episodes in sec
         external_joint_ranges: list(tuple(float, float)) of joint space range to map to (e.g. physical arm range) 
+        joint_init_pose: joint initial pose (in extenral joint space)
     """
     # define general config params
     task          : str
@@ -43,6 +44,7 @@ class SO101EnvConfig(EnvConfig):
     visualization_width  :int = 640
     visualization_height :int = 480
     external_joint_ranges: npt.NDArray | None = None
+    joint_init_pose      : npt.NDArray | None = None
     
     # the minimal feature is the action
     features: dict[str, PolicyFeature] = field(
@@ -91,6 +93,12 @@ class SO101EnvConfig(EnvConfig):
             # check min <= max
             if np.any(self.external_joint_ranges[:, 0] > self.external_joint_ranges[:, 1]):
                 raise ValueError("All external_joint_ranges must satisfy min <= max")
+        
+        # if supplied with joint init pose
+        if self.joint_init_pose is not None:
+            # validate dims
+            if self.joint_init_pose.ndim != 1 or self.joint_init_pose.shape[0] != len(ACTIONS):
+                raise ValueError(f"joint_init_pose must have a shape of {len(ACTIONS)} by 1")
 
     @property
     def gym_kwargs(self) -> dict:
@@ -103,14 +111,15 @@ class SO101EnvConfig(EnvConfig):
 def make_so101_env(cfg: SO101EnvConfig, torch_actions: bool, lerobot_obs: bool):
     """ Builds SO101Env from cfg."""
     env = SO101Env(
-        task                 = cfg.task,
-        obs_type             = cfg.obs_type,
-        render_mode          = cfg.render_mode,
-        observation_width    = cfg.observation_width,
-        observation_height   = cfg.observation_height,
-        visualization_width  = cfg.visualization_width,
-        visualization_height = cfg.visualization_height,
-        external_joint_ranges = cfg.external_joint_ranges
+        task_name             = cfg.task,
+        obs_type              = cfg.obs_type,
+        render_mode           = cfg.render_mode,
+        observation_width     = cfg.observation_width,
+        observation_height    = cfg.observation_height,
+        visualization_width   = cfg.visualization_width,
+        visualization_height  = cfg.visualization_height,
+        external_joint_ranges = cfg.external_joint_ranges,
+        joint_init_pose       = cfg.joint_init_pose
     )
     
     # convert to lerobot policy structure
