@@ -13,6 +13,7 @@ from lerobot.datasets.lerobot_dataset import LeRobotDataset
 # utils
 import time
 from src.utils import process_obs_to_np
+# from src.rr_logger import RRLogger TODO switch to my rr logger
 
 def env_rollout(
     # manage all rollouts with logic
@@ -84,7 +85,7 @@ def one_rollout(
 ) -> dict:
     # init rr
     if display_rerun:
-        _init_rerun(session_name="teleop_env1", recording_id=time.time())
+        _init_rerun(session_name="teleop_env", recording_id=time.time())
     
     # reset policy
     if policy is not None:
@@ -114,6 +115,9 @@ def one_rollout(
                 action = policy.select_action(obs)
         else:
             action = teleop.get_action()
+            # cast to torch
+            if not isinstance(action, torch.Tensor):
+                action = torch.tensor(list(action.values()), dtype=torch.float32).cpu()
         
         # 2. Apply to env
         obs, reward, terminated, truncated, _ = env.step(action)

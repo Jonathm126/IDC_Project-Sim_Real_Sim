@@ -183,8 +183,14 @@ class SO101Env(gym.Env):
         image = self._env.physics.render(height=height, width=width, camera_id="iso_cam")
         return image
     
-    def reset(self, seed=None, options=None):
+    def reset(self, seed=None, options=None, start_pose = None):
+        # set the arm start pose
+        if start_pose is not None and hasattr(self._env.task, "start_pose"):
+            setattr(self._env.task, "start_pose", start_pose)
+        
+        # reset task and episode
         super().reset(seed=seed, options=options)
+        
         # set seed
         if seed is not None:
             self._env.task.random.seed(seed)

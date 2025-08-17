@@ -63,8 +63,8 @@ class TableLegAssembleTask(SO101Task):
             
             # set peg and table pose
             rng = self.random
-            physics.named.data.qpos['table_leg_joint'][:3] = [rng.uniform(0, 0.25), rng.uniform(-0.25, 0.25), 0.05]
-            physics.named.data.qpos['table_top_joint'][:3] = [rng.uniform(0, 0.25), rng.uniform(-0.25, 0.25), 0.05]
+            physics.named.data.qpos['table_leg_joint'][:3] = [rng.uniform(0, 0.15), rng.uniform(-0.25, 0.25), 0.05]
+            physics.named.data.qpos['table_top_joint'][:3] = [rng.uniform(0, 0.15), rng.uniform(-0.25, 0.25), 0.05]
             
             # set sites to clear
             self.sites = ['leg_tip', 'table_hole_1', 'table_hole_2', 'table_hole_3', 'table_hole_4']

@@ -2,6 +2,8 @@ from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
 from lerobot.cameras.opencv.camera_opencv import OpenCVCamera
 from lerobot.cameras.configs import ColorMode, Cv2Rotation
 import cv2
+import os
+os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
 print("started")
 

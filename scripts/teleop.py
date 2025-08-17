@@ -4,11 +4,13 @@ from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
 from lerobot.teleoperators.so101_leader import SO101LeaderConfig, SO101Leader
 from lerobot.robots.so101_follower import SO101FollowerConfig, SO101Follower
 from lerobot.cameras.configs import ColorMode, Cv2Rotation
+from pathlib import Path
 import cv2
 
-
 # paths
-from utils.paths import CALIBS_DIR 
+import sys
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+from src.paths import CALIBS_DIR 
 
 camera_config = {
     "wrist_cam": OpenCVCameraConfig(index_or_path=0, width=640, height=480, fps=30),
