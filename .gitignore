@@ -9,3 +9,7 @@ envs/__pycache__/so101_env_config.cpython-310.pyc
 envs/__pycache__/so101_env_tasks.cpython-310.pyc
 envs/__pycache__/so101_env_utils.cpython-310.pyc
 envs/__pycache__/so101_env.cpython-310.pyc
+eval/
+libs/obsolete_patches/
+src/__pycache__/
+

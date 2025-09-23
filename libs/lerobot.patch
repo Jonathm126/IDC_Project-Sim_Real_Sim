@@ -1,68 +1,132 @@
-From 12eac06bc4aedfcc3a2e0afdb9e84a4cbac25546 Mon Sep 17 00:00:00 2001
+From a65957090f0efb8132fb0f2d5fcd3880e47a1b2b Mon Sep 17 00:00:00 2001
 From: Jonathm126 <feedmeh@gmail.com>
-Date: Tue, 5 Aug 2025 06:48:06 +0300
-Subject: [PATCH] fixes in eval.py and in visualization_utils.py
+Date: Tue, 23 Sep 2025 08:00:17 +0300
+Subject: [PATCH] Implemented my own small changes: record.py logging, camera
+ opencv for windows and visualization_utils with record_id
 
 ---
- src/lerobot/scripts/eval.py              |  2 +-
- src/lerobot/utils/visualization_utils.py | 17 +++++++++--------
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ src/lerobot/cameras/opencv/camera_opencv.py |  2 ++
+ src/lerobot/record.py                       | 32 +++++++++++++++------
+ src/lerobot/utils/visualization_utils.py    |  4 +--
+ 3 files changed, 27 insertions(+), 11 deletions(-)
 
-diff --git a/src/lerobot/scripts/eval.py b/src/lerobot/scripts/eval.py
-index d85ac27b..cb849cbe 100644
---- a/src/lerobot/scripts/eval.py
-+++ b/src/lerobot/scripts/eval.py
-@@ -137,7 +137,7 @@ def rollout(
-     step = 0
-     # Keep track of which environments are done.
-     done = np.array([False] * env.num_envs)
--    max_steps = env.call("_max_episode_steps")[0]
-+    max_steps = env.call("max_episode_steps")[0]
-     progbar = trange(
-         max_steps,
-         desc=f"Running rollout with at most {max_steps} steps",
+diff --git a/src/lerobot/cameras/opencv/camera_opencv.py b/src/lerobot/cameras/opencv/camera_opencv.py
+index 3665a909..b047ac12 100644
+--- a/src/lerobot/cameras/opencv/camera_opencv.py
++++ b/src/lerobot/cameras/opencv/camera_opencv.py
+@@ -160,6 +160,8 @@ class OpenCVCamera(Camera):
+         cv2.setNumThreads(1)
+ 
+         self.videocapture = cv2.VideoCapture(self.index_or_path, self.backend)
++        # self.videocapture = cv2.VideoCapture(self.index_or_path, cv2.CAP_MSMF) # TODO -changed it!
++        # self.videocapture = cv2.VideoCapture(self.index_or_path, cv2.CAP_DSHOW)
+ 
+         if not self.videocapture.isOpened():
+             self.videocapture.release()
+diff --git a/src/lerobot/record.py b/src/lerobot/record.py
+index d09b017e..7c15479c 100644
+--- a/src/lerobot/record.py
++++ b/src/lerobot/record.py
+@@ -61,6 +61,7 @@ lerobot-record \
+ import logging
+ import time
+ from dataclasses import asdict, dataclass, field
++from datetime import datetime
+ from pathlib import Path
+ from pprint import pformat
+ from typing import Any
+@@ -295,16 +296,17 @@ def record_loop(
+         if events["exit_early"]:
+             events["exit_early"] = False
+             break
+-
+-        # Get robot observation
++        t0 = time.perf_counter()
+         obs = robot.get_observation()
+-
+         # Applies a pipeline to the raw robot observation, default is IdentityProcessor
+         obs_processed = robot_observation_processor(obs)
++        t_obs = time.perf_counter() - t0
+ 
+         if policy is not None or dataset is not None:
+             observation_frame = build_dataset_frame(dataset.features, obs_processed, prefix="observation")
++            t_build = time.perf_counter() - t0
+ 
++        t0 = time.perf_counter()
+         # Get action from either policy or teleop
+         if policy is not None and preprocessor is not None and postprocessor is not None:
+             action_values = predict_action(
+@@ -343,6 +345,7 @@ def record_loop(
+                 "The robot won't be at its rest position at the start of the next episode."
+             )
+             continue
++        t_policy = time.perf_counter() - t0
+ 
+         # Applies a pipeline to the action, default is IdentityProcessor
+         if policy is not None and act_processed_policy is not None:
+@@ -356,27 +359,38 @@ def record_loop(
+         # Action can eventually be clipped using `max_relative_target`,
+         # so action actually sent is saved in the dataset. action = postprocessor.process(action)
+         # TODO(steven, pepijn, adil): we should use a pipeline step to clip the action, so the sent action is the action that we input to the robot.
++        t0 = time.perf_counter()
+         _sent_action = robot.send_action(robot_action_to_send)
++        t_send = time.perf_counter() - t0
+ 
+         # Write to dataset
++        t0 = time.perf_counter()
+         if dataset is not None:
+             action_frame = build_dataset_frame(dataset.features, action_values, prefix="action")
+-            frame = {**observation_frame, **action_frame, "task": single_task}
+-            dataset.add_frame(frame)
++            frame = {**observation_frame, **action_frame}
++            dataset.add_frame(frame, task=single_task)
++        t_dataset = time.perf_counter() - t0
+ 
++        t0 = time.perf_counter()
+         if display_data:
+             log_rerun_data(observation=obs_processed, action=action_values)
++        t_display = time.perf_counter() - t0
+ 
+         dt_s = time.perf_counter() - start_loop_t
+         busy_wait(1 / fps - dt_s)
+-
++        if 1.0/dt_s < fps - 1:
++            logging.warning(f"FPS drop! {1.0/dt_s:.2f}/{fps}")
++        
++        logging.debug(f"ms: obs={t_obs*1e3:.1f}, build={t_build*1e3:.1f}, policy={t_policy*1e3:.1f}, send={t_send*1e3:.1f}, dataset={t_dataset*1e3:.1f}, disp={t_display*1e3:.1f}, tot={dt_s*1e3:.1f}")
++        
+         timestamp = time.perf_counter() - start_episode_t
+ 
+-
+ @parser.wrap()
+ def record(cfg: RecordConfig) -> LeRobotDataset:
+-    init_logging()
+-    logging.info(pformat(asdict(cfg)))
++    # init_logging()
++    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
++    init_logging(Path(f'C:/Github/IDC_Project-Sim_Real_Sim/outputs/logs/log_{ts}.txt'))
++    # logging.info(pformat(asdict(cfg)))
+     if cfg.display_data:
+         _init_rerun(session_name="recording")
+ 
 diff --git a/src/lerobot/utils/visualization_utils.py b/src/lerobot/utils/visualization_utils.py
-index f0f9aebb..674bea59 100644
+index e6acc87d..53f41855 100644
 --- a/src/lerobot/utils/visualization_utils.py
 +++ b/src/lerobot/utils/visualization_utils.py
-@@ -19,28 +19,29 @@ import numpy as np
+@@ -20,11 +20,11 @@ import numpy as np
  import rerun as rr
  
  
 -def _init_rerun(session_name: str = "lerobot_control_loop") -> None:
-+def _init_rerun(session_name: str = "lerobot_control_loop", recording_id:str = None) -> None:
++def _init_rerun(session_name: str = "lerobot_control_loop", recording_id = None) -> None:
      """Initializes the Rerun SDK for visualizing the control loop."""
      batch_size = os.getenv("RERUN_FLUSH_NUM_BYTES", "8000")
      os.environ["RERUN_FLUSH_NUM_BYTES"] = batch_size
 -    rr.init(session_name)
++    rr.init(session_name, recording_id=recording_id)
      memory_limit = os.getenv("LEROBOT_RERUN_MEMORY_LIMIT", "10%")
-+    rr.init(application_id = session_name,
-+            recording_id = recording_id)
      rr.spawn(memory_limit=memory_limit)
  
- 
--def log_rerun_data(observation: dict[str | Any], action: dict[str | Any]):
-+def log_rerun_data(observation: dict[str | Any], action: dict[str | Any], static_img = False):
-     for obs, val in observation.items():
-         if isinstance(val, float):
--            rr.log(f"observation.{obs}", rr.Scalar(val))
-+            rr.log(f"observation.{obs}", rr.Scalars(val))
-         elif isinstance(val, np.ndarray):
-             if val.ndim == 1:
-                 for i, v in enumerate(val):
--                    rr.log(f"observation.{obs}_{i}", rr.Scalar(float(v)))
-+                    rr.log(f"observation.{obs}_{i}", rr.Scalars(float(v)))
-             else:
--                rr.log(f"observation.{obs}", rr.Image(val), static=True)
-+                rr.log(f"observation.{obs}", rr.Image(val), static=static_img)
-     for act, val in action.items():
-         if isinstance(val, float):
--            rr.log(f"action.{act}", rr.Scalar(val))
-+            rr.log(f"action.{act}", rr.Scalars(val))
-         elif isinstance(val, np.ndarray):
-             for i, v in enumerate(val):
--                rr.log(f"action.{act}_{i}", rr.Scalar(float(v)))
-+                rr.log(f"action.{act}_{i}", rr.Scalars(float(v)))
 -- 
 2.43.0.windows.1
 
