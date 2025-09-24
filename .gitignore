@@ -13,3 +13,5 @@ eval/
 libs/obsolete_patches/
 src/__pycache__/
 
+outputs/logs/
+src/__pycache__/utils.cpython-310.pyc

@@ -25,13 +25,13 @@ def process_obs_to_np(obs):
 }
     
 
-def write_eval_stats(dataset, new_episodes, elapsed_s, num_episodes, filename="eval_results.json"):
+def write_eval_stats(dataset, episodes, num_episodes, elapsed_s = None, filename="eval_results.json"):
     """
-    Append new evaluation episodes and update aggregated stats.
+    Append evaluation results and update aggregated stats.
 
     Args:
         dataset: dataset object with .root (pathlib.Path)
-        new_episodes: list of dicts with per-episode stats
+        episodes: list of dicts with episode stats (partial dicts allowed)
         elapsed_s: total evaluation time in seconds
         num_episodes: number of episodes in this run
         filename: json filename (default: eval_results.json)
@@ -47,10 +47,17 @@ def write_eval_stats(dataset, new_episodes, elapsed_s, num_episodes, filename="e
     else:
         results = {"per_episode": []}
 
-    # Append new episodes
-    results["per_episode"].extend(new_episodes)
+    # Normalize new episodes: fill missing keys with None
+    default_keys = ["episode_ix", "sum_reward", "max_reward", "success", "seed"]
+    normalized_eps = []
+    for ep in episodes:
+        full_ep = {k: ep.get(k, None) for k in default_keys}
+        normalized_eps.append(full_ep)
 
-    # Recompute aggregated
+    # Append
+    results["per_episode"].extend(normalized_eps)
+
+    # Recompute aggregated stats
     sum_rewards = [ep["sum_reward"] for ep in results["per_episode"] if ep["sum_reward"] is not None]
     max_rewards = [ep["max_reward"] for ep in results["per_episode"] if ep["max_reward"] is not None]
     successes   = [ep["success"] for ep in results["per_episode"] if ep["success"] is not None]
@@ -58,12 +65,11 @@ def write_eval_stats(dataset, new_episodes, elapsed_s, num_episodes, filename="e
     results["aggregated"] = {
         "avg_sum_reward": statistics.mean(sum_rewards) if sum_rewards else None,
         "avg_max_reward": statistics.mean(max_rewards) if max_rewards else None,
-        "pc_success": 100 * statistics.mean(successes) if successes else None,
-        "eval_s": elapsed_s,
-        "eval_ep_s": elapsed_s / num_episodes if num_episodes else None,
+        "pc_success"    : 100 * statistics.mean(successes) if successes else None,
+        "eval_s"        : elapsed_s if elapsed_s else None,
+        "eval_ep_s"     : elapsed_s / num_episodes if num_episodes else None,
     }
 
-
-    # Dump
+    # Save
     with open(json_path, "w") as f:
         json.dump(results, f, indent=2)
