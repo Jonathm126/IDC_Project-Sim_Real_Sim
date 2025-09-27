@@ -1,16 +1,49 @@
 {
-"name": "lerobot-gpu-ACT-project",
-"build":{
+  "name": "lerobot-gpu-ACT-project",
+  "build": {
     "dockerfile": "Dockerfile.lerobot-gpu.custom"
-},
-"runArgs": ["--gpus", "all"],
-"workspaceFolder": "/workspace",
-"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
-"customizations": {
+  },
+  "runArgs": [
+    "--gpus=all",
+    "--runtime=nvidia",
+    "--privileged",
+    // "--device=/dev/video5:/dev/video5",   // ARC camera
+    // "--device=/dev/video6:/dev/video6",   // Logitech BRIO
+    // "--device=/dev/ttyACM0:/dev/ttyACM0", // QinHeng serial #1
+    // "--device=/dev/ttyACM1:/dev/ttyACM1"  // QinHeng serial #2
+    "-v", "/dev/bus/usb:/dev/bus/usb",
+
+    // X11 secure forwarding with Xauthority
+    "-e", "DISPLAY",
+    "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+    "-v", "${env:HOME}/.Xauthority:/root/.Xauthority",
+    "-e", "XAUTHORITY=/root/.Xauthority",
+
+    // Optional: avoid Qt shared memory issues
+    "-e", "QT_X11_NO_MITSHM=1"
+  ],
+  "containerEnv": {
+    "NVIDIA_DRIVER_CAPABILITIES": "all",
+    "NVIDIA_VISIBLE_DEVICES": "all",
+    "XDG_RUNTIME_DIR": "/tmp/runtime"
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "customizations": {
     "vscode": {
-        "settings": {
+      "settings": {
         "python.defaultInterpreterPath": "/lerobot/.venv/bin/python"
-            }
-        }
+      },
+      "extensions": [
+        "chouzz.vscode-better-align",
+        "ms-toolsai.datawrangler",
+        "oderwat.indent-rainbow",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-renderers",
+        "ms-python.python",
+        "ms-python.vscode-python-envs"
+      ]
     }
+  },
+  "postStartCommand": "mkdir -p /tmp/runtime && chmod 700 /tmp/runtime"
 }

@@ -2,20 +2,20 @@ from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
 from lerobot.cameras.opencv.camera_opencv import OpenCVCamera
 from lerobot.cameras.configs import ColorMode, Cv2Rotation
 import cv2
-import os
 import time
 import numpy as np
 from collections import deque
 
-os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
-os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_DECODING"] = "0"
-os.environ["OPENCV_VIDEOIO_MSMF_FORCE_BGR"] = "1"
+# import os
+# os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
+# os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_DECODING"] = "0"
+# os.environ["OPENCV_VIDEOIO_MSMF_FORCE_BGR"] = "1"
 
 print("started")
 
 # Camera configs
 config0 = OpenCVCameraConfig(
-    index_or_path=0,
+    index_or_path='/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._USB2.0_CAM1_USB2.0_CAM1-video-index0',
     fps=30,
     width=640,
     height=480,
@@ -23,7 +23,7 @@ config0 = OpenCVCameraConfig(
     rotation=Cv2Rotation.NO_ROTATION,
 )
 config1 = OpenCVCameraConfig(
-    index_or_path=1,
+    index_or_path='/dev/v4l/by-id/usb-046d_Logitech_BRIO_8F54E371-video-index0',
     fps=30,
     width=640,
     height=480,

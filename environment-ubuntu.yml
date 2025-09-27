@@ -1,0 +1,10 @@
+name: lerobot-sim-real-sim
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - -e libs/lerobot[feetech]
+      - -e libs/aloha
+      - -r requirements.override.txt

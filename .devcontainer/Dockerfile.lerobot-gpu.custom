@@ -1,4 +1,4 @@
-FROM huggingface/lerobot-gpu:sha256:a3945d985c0ac552ad16f0661f514811ce756711108a47ec6b027ebb2e88cc68
+FROM huggingface/lerobot-gpu@sha256:a3945d985c0ac552ad16f0661f514811ce756711108a47ec6b027ebb2e88cc68
 
 # temporary root access
 USER root

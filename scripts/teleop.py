@@ -1,9 +1,3 @@
-import os
-os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
-from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
-from lerobot.teleoperators.so101_leader import SO101LeaderConfig, SO101Leader
-from lerobot.robots.so101_follower import SO101FollowerConfig, SO101Follower
-from lerobot.cameras.configs import ColorMode, Cv2Rotation
 from pathlib import Path
 import cv2
 import time
@@ -11,35 +5,10 @@ import time
 # paths
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from src.paths import CALIBS_DIR 
-
-# Camera configs
-camera_config = {
-    "wrist_cam": OpenCVCameraConfig(index_or_path=0, width=640, height=480, fps=30),
-    "top_cam": OpenCVCameraConfig(index_or_path=1, width=640, height=480, fps=30, rotation=Cv2Rotation.NO_ROTATION),
-}
-
-cam = True
-
-# Robot + teleop configs
-robot_config = SO101FollowerConfig(
-    port="COM7",
-    id="so_101_follower",
-    cameras=camera_config,
-    calibration_dir=CALIBS_DIR
-)
-
-teleop_config = SO101LeaderConfig(
-    port="COM8",
-    id="so_101_leader",
-    calibration_dir=CALIBS_DIR
-)
-
-robot = SO101Follower(robot_config)
-teleop_device = SO101Leader(teleop_config)
+from src.robot_config import robot, teleop
 
 robot.connect()
-teleop_device.connect()
+teleop.connect()
 
 # FPS tracking
 frame_count = 0
@@ -48,11 +17,11 @@ fps = 0.0
 
 while True:
     observation = robot.get_observation()
-    action = teleop_device.get_action()
+    action = teleop.get_action()
     
-    if cam:
+    if robot.cameras is not None:
         frames_bgr = []
-        for cam_name in camera_config.keys():
+        for cam_name in robot.cameras.keys():
             frame_rgb = observation[cam_name]
             frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
             frames_bgr.append(frame_bgr)
@@ -86,7 +55,7 @@ while True:
         )
 
         # Display
-        cv2.imshow(" | ".join(camera_config.keys()), combined)
+        cv2.imshow(" | ".join(robot.cameras.keys()), combined)
     
     robot.send_action(action)
     
@@ -94,5 +63,5 @@ while True:
         break
 
 robot.disconnect()
-teleop_device.disconnect()
+teleop.disconnect()
 cv2.destroyAllWindows()

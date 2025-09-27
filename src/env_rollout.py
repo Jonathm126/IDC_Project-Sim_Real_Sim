@@ -13,7 +13,6 @@ from lerobot.datasets.lerobot_dataset import LeRobotDataset
 # utils
 import time
 from src.utils import process_obs_to_np
-# from src.rr_logger import RRLogger TODO switch to my rr logger
 
 def env_rollout(
     # manage all rollouts with logic

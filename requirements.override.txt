@@ -1,0 +1,16 @@
+# Manual overrides and additions beyond pyproject.toml
+
+# Replace headless build
+opencv-python==4.12.0.88
+
+# Ensure video IO works
+imageio-ffmpeg==0.6.0
+
+# For Hugging Face fast transfer
+hf_transfer==0.1.9
+
+# For Jupyter kernel integration
+ipykernel==6.30.1
+
+# Environment variable loading
+python-dotenv==1.0.1

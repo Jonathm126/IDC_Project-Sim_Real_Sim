@@ -1,0 +1,16 @@
+{
+"name": "lerobot-gpu-ACT-project",
+"build":{
+    "dockerfile": "Dockerfile.lerobot-gpu.custom"
+},
+"runArgs": ["--gpus", "all"],
+"workspaceFolder": "/workspace",
+"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+"customizations": {
+    "vscode": {
+        "settings": {
+        "python.defaultInterpreterPath": "/lerobot/.venv/bin/python"
+            }
+        }
+    }
+}

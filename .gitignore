@@ -1,17 +1,27 @@
-.env
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtualenv / environment
+.env/
+envs/__pycache__/
+
+# VSCode settings
+.vscode/
+
+# Logs, temp outputs
+outputs/logs/
+outputs/captured_images/
+eval/temp/
+eval/*.mp4
+
+# Obsolete stuff
+libs/obsolete_patches/
+
+# Heavy data/models – use git-lfs or fetch from HF
 datasets/
 policies/
-obsolete/
-eval/temp/eval_episode_0.mp4
-.vscode/settings.json
-envs/__pycache__/__init__.cpython-310.pyc
-envs/__pycache__/so101_env_config.cpython-310.pyc
-envs/__pycache__/so101_env_tasks.cpython-310.pyc
-envs/__pycache__/so101_env_utils.cpython-310.pyc
-envs/__pycache__/so101_env.cpython-310.pyc
-eval/
-libs/obsolete_patches/
-src/__pycache__/
-
-outputs/logs/
+src/__pycache__/paths.cpython-310.pyc
+src/__pycache__/robot_utils.cpython-310.pyc
 src/__pycache__/utils.cpython-310.pyc

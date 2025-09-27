@@ -1,0 +1,302 @@
+diff --git a/src/lerobot/cameras/opencv/camera_opencv.py b/src/lerobot/cameras/opencv/camera_opencv.py
+index 3665a909..dd65f350 100644
+--- a/src/lerobot/cameras/opencv/camera_opencv.py
++++ b/src/lerobot/cameras/opencv/camera_opencv.py
+@@ -160,6 +160,7 @@ class OpenCVCamera(Camera):
+         cv2.setNumThreads(1)
+ 
+         self.videocapture = cv2.VideoCapture(self.index_or_path, self.backend)
++        self.videocapture.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc(*"MJPG"))
+ 
+         if not self.videocapture.isOpened():
+             self.videocapture.release()
+diff --git a/src/lerobot/datasets/v30/convert_dataset_v21_to_v30.py b/src/lerobot/datasets/v30/convert_dataset_v21_to_v30.py
+index 96bdc189..0af3a1e5 100644
+--- a/src/lerobot/datasets/v30/convert_dataset_v21_to_v30.py
++++ b/src/lerobot/datasets/v30/convert_dataset_v21_to_v30.py
+@@ -418,10 +418,16 @@ def convert_dataset(
+     branch: str | None = None,
+     data_file_size_in_mb: int | None = None,
+     video_file_size_in_mb: int | None = None,
++    dataset_path: str | None = None,  # !
+ ):
+-    root = HF_LEROBOT_HOME / repo_id
+-    old_root = HF_LEROBOT_HOME / f"{repo_id}_old"
+-    new_root = HF_LEROBOT_HOME / f"{repo_id}_v30"
++    if dataset_path is not None:
++        root = Path(dataset_path).resolve()
++        old_root = root.parent / f"{root.name}_old"
++        new_root = root.parent / f"{root.name}_v30"
++    else:
++        root = HF_LEROBOT_HOME / repo_id
++        old_root = HF_LEROBOT_HOME / f"{repo_id}_old"
++        new_root = HF_LEROBOT_HOME / f"{repo_id}_v30"
+ 
+     if data_file_size_in_mb is None:
+         data_file_size_in_mb = DEFAULT_DATA_FILE_SIZE_IN_MB
+@@ -435,12 +441,13 @@ def convert_dataset(
+     if new_root.is_dir():
+         shutil.rmtree(new_root)
+ 
+-    snapshot_download(
+-        repo_id,
+-        repo_type="dataset",
+-        revision=V21,
+-        local_dir=root,
+-    )
++    if dataset_path is None:
++        snapshot_download(
++            repo_id,
++            repo_type="dataset",
++            revision=V21,
++            local_dir=root,
++        )
+ 
+     convert_info(root, new_root, data_file_size_in_mb, video_file_size_in_mb)
+     convert_tasks(root, new_root)
+@@ -451,21 +458,21 @@ def convert_dataset(
+     shutil.move(str(root), str(old_root))
+     shutil.move(str(new_root), str(root))
+ 
+-    hub_api = HfApi()
+-    try:
+-        hub_api.delete_tag(repo_id, tag=CODEBASE_VERSION, repo_type="dataset")
+-    except HTTPError as e:
+-        print(f"tag={CODEBASE_VERSION} probably doesn't exist. Skipping exception ({e})")
+-        pass
+-    hub_api.delete_files(
+-        delete_patterns=["data/chunk*/episode_*", "meta/*.jsonl", "videos/chunk*"],
+-        repo_id=repo_id,
+-        revision=branch,
+-        repo_type="dataset",
+-    )
+-    hub_api.create_tag(repo_id, tag=CODEBASE_VERSION, revision=branch, repo_type="dataset")
++    # hub_api = HfApi() !
++    # try:
++    #     hub_api.delete_tag(repo_id, tag=CODEBASE_VERSION, repo_type="dataset")
++    # except HTTPError as e:
++    #     print(f"tag={CODEBASE_VERSION} probably doesn't exist. Skipping exception ({e})")
++    #     pass
++    # hub_api.delete_files(
++    #     delete_patterns=["data/chunk*/episode_*", "meta/*.jsonl", "videos/chunk*"],
++    #     repo_id=repo_id,
++    #     revision=branch,
++    #     repo_type="dataset",
++    # )
++    # hub_api.create_tag(repo_id, tag=CODEBASE_VERSION, revision=branch, repo_type="dataset")
+ 
+-    LeRobotDataset(repo_id).push_to_hub()
++    # LeRobotDataset(repo_id).push_to_hub()
+ 
+ 
+ if __name__ == "__main__":
+@@ -495,6 +502,12 @@ if __name__ == "__main__":
+         default=None,
+         help="File size in MB. Defaults to 100 for data and 500 for videos.",
+     )
++    parser.add_argument(
++        "--dataset-path",
++        type=str,
++        default=None,
++        help="Path to the dataset directory.",
++    )
+ 
+     args = parser.parse_args()
+     convert_dataset(**vars(args))
+diff --git a/src/lerobot/record.py b/src/lerobot/record.py
+index d09b017e..027c10a6 100644
+--- a/src/lerobot/record.py
++++ b/src/lerobot/record.py
+@@ -59,12 +59,18 @@ lerobot-record \
+ """
+ 
+ import logging
++import sys
+ import time
+ from dataclasses import asdict, dataclass, field
++from datetime import datetime
+ from pathlib import Path
+ from pprint import pformat
+ from typing import Any
+ 
++sys.path.append(str(Path(__file__).resolve().parents[4] / "src"))
++from robot_utils import move_robot_to_pose
++from utils import write_eval_stats
++
+ from lerobot.cameras import (  # noqa: F401
+     CameraConfig,  # noqa: F401
+ )
+@@ -254,6 +260,10 @@ def record_loop(
+     single_task: str | None = None,
+     display_data: bool = False,
+ ):
++    if display_data:
++        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
++        _init_rerun(session_name = "recording", recording_id = ts)
++
+     if dataset is not None and dataset.fps != fps:
+         raise ValueError(f"The dataset fps should be equal to requested fps ({dataset.fps} != {fps}).")
+ 
+@@ -295,16 +305,18 @@ def record_loop(
+         if events["exit_early"]:
+             events["exit_early"] = False
+             break
+-
+-        # Get robot observation
++        t0 = time.perf_counter()
+         obs = robot.get_observation()
+-
+         # Applies a pipeline to the raw robot observation, default is IdentityProcessor
+         obs_processed = robot_observation_processor(obs)
++        t_obs = time.perf_counter() - t0
+ 
++        t0 = time.perf_counter()
+         if policy is not None or dataset is not None:
+             observation_frame = build_dataset_frame(dataset.features, obs_processed, prefix="observation")
++        t_build = time.perf_counter() - t0
+ 
++        t0 = time.perf_counter()
+         # Get action from either policy or teleop
+         if policy is not None and preprocessor is not None and postprocessor is not None:
+             action_values = predict_action(
+@@ -351,34 +363,49 @@ def record_loop(
+         else:
+             action_values = act_processed_teleop
+             robot_action_to_send = robot_action_processor((act_processed_teleop, obs))
++        t_policy = time.perf_counter() - t0
+ 
+         # Send action to robot
+         # Action can eventually be clipped using `max_relative_target`,
+         # so action actually sent is saved in the dataset. action = postprocessor.process(action)
+         # TODO(steven, pepijn, adil): we should use a pipeline step to clip the action, so the sent action is the action that we input to the robot.
++        t0 = time.perf_counter()
+         _sent_action = robot.send_action(robot_action_to_send)
++        t_send = time.perf_counter() - t0
+ 
+         # Write to dataset
++        t0 = time.perf_counter()
+         if dataset is not None:
+             action_frame = build_dataset_frame(dataset.features, action_values, prefix="action")
+             frame = {**observation_frame, **action_frame, "task": single_task}
+             dataset.add_frame(frame)
++        t_dataset = time.perf_counter() - t0
+ 
++        t0 = time.perf_counter()
+         if display_data:
+             log_rerun_data(observation=obs_processed, action=action_values)
++        t_display = time.perf_counter() - t0
+ 
+         dt_s = time.perf_counter() - start_loop_t
+         busy_wait(1 / fps - dt_s)
++        if 1.0/dt_s < (fps - 1):
++            logging.debug(f"FPS drop! {1.0/dt_s:.2f}/{fps}")
+ 
+-        timestamp = time.perf_counter() - start_episode_t
++        logging.debug(f"ms: obs={t_obs*1e3:.1f}, build={t_build*1e3:.1f}, policy={t_policy*1e3:.1f}, send={t_send*1e3:.1f}, dataset={t_dataset*1e3:.1f}, disp={t_display*1e3:.1f}, tot={dt_s*1e3:.1f}")
+ 
++        timestamp = time.perf_counter() - start_episode_t
+ 
+ @parser.wrap()
+-def record(cfg: RecordConfig) -> LeRobotDataset:
+-    init_logging()
+-    logging.info(pformat(asdict(cfg)))
+-    if cfg.display_data:
+-        _init_rerun(session_name="recording")
++def record(cfg: RecordConfig, save_to_ds = False, reset_pose = None, give_feedback = False) -> LeRobotDataset:
++    # init_logging()
++    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
++    init_logging(Path(f'C:/Github/IDC_Project-Sim_Real_Sim/outputs/logs/log_{ts}.txt'))
++    # logging.info(pformat(asdict(cfg)))
++    # if cfg.display_data:
++    #     _init_rerun(session_name = "recording", recording_id = ts)
++
++    if give_feedback:
++        results = {"per_episode": []}
+ 
+     robot = make_robot_from_config(cfg.robot)
+     teleop = make_teleoperator_from_config(cfg.teleop) if cfg.teleop is not None else None
+@@ -449,6 +476,9 @@ def record(cfg: RecordConfig) -> LeRobotDataset:
+ 
+     listener, events = init_keyboard_listener()
+ 
++    if reset_pose is not None:
++        move_robot_to_pose(robot, reset_pose, 1, 30)
++
+     with VideoEncodingManager(dataset):
+         recorded_episodes = 0
+         while recorded_episodes < cfg.dataset.num_episodes and not events["stop_recording"]:
+@@ -475,19 +505,25 @@ def record(cfg: RecordConfig) -> LeRobotDataset:
+             if not events["stop_recording"] and (
+                 (recorded_episodes < cfg.dataset.num_episodes - 1) or events["rerecord_episode"]
+             ):
+-                log_say("Reset the environment", cfg.play_sounds)
+-                record_loop(
+-                    robot=robot,
+-                    events=events,
+-                    fps=cfg.dataset.fps,
+-                    teleop_action_processor=teleop_action_processor,
+-                    robot_action_processor=robot_action_processor,
+-                    robot_observation_processor=robot_observation_processor,
+-                    teleop=teleop,
+-                    control_time_s=cfg.dataset.reset_time_s,
+-                    single_task=cfg.dataset.single_task,
+-                    display_data=cfg.display_data,
+-                )
++                if teleop is not None:
++                    log_say("Reset the environment", cfg.play_sounds)
++                    record_loop(
++                        robot=robot,
++                        events=events,
++                        fps=cfg.dataset.fps,
++                        teleop_action_processor=teleop_action_processor,
++                        robot_action_processor=robot_action_processor,
++                        robot_observation_processor=robot_observation_processor,
++                        teleop=teleop,
++                        control_time_s=cfg.dataset.reset_time_s,
++                        single_task=cfg.dataset.single_task,
++                        display_data=cfg.display_data,
++                    )
++                elif reset_pose is not None:
++                    log_say("Reset the environment", cfg.play_sounds)
++                    move_robot_to_pose(robot, reset_pose, 1, 30)
++                else:
++                    time.sleep(cfg.dataset.reset_time_s)
+ 
+             if events["rerecord_episode"]:
+                 log_say("Re-record episode", cfg.play_sounds)
+@@ -496,6 +532,17 @@ def record(cfg: RecordConfig) -> LeRobotDataset:
+                 dataset.clear_episode_buffer()
+                 continue
+ 
++            # Give human feedback for the loop
++            if give_feedback:
++                log_say("Input success")
++                ep = {
++                    "episode_ix": recorded_episodes,
++                    "success"   : float(input(f"[Ep {recorded_episodes}] Enter success (0, 0.5, 1): "))
++                    }
++                ep["success"] = float(input(f"[Ep {recorded_episodes}] Enter success (0, 0.5, 1): "))
++                results["per_episode"].append(ep)
++                write_eval_stats(dataset, [ep], 1)
++
+             dataset.save_episode()
+             recorded_episodes += 1
+ 
+diff --git a/src/lerobot/utils/visualization_utils.py b/src/lerobot/utils/visualization_utils.py
+index e6acc87d..53f41855 100644
+--- a/src/lerobot/utils/visualization_utils.py
++++ b/src/lerobot/utils/visualization_utils.py
+@@ -20,11 +20,11 @@ import numpy as np
+ import rerun as rr
+ 
+ 
+-def _init_rerun(session_name: str = "lerobot_control_loop") -> None:
++def _init_rerun(session_name: str = "lerobot_control_loop", recording_id = None) -> None:
+     """Initializes the Rerun SDK for visualizing the control loop."""
+     batch_size = os.getenv("RERUN_FLUSH_NUM_BYTES", "8000")
+     os.environ["RERUN_FLUSH_NUM_BYTES"] = batch_size
+-    rr.init(session_name)
++    rr.init(session_name, recording_id=recording_id)
+     memory_limit = os.getenv("LEROBOT_RERUN_MEMORY_LIMIT", "10%")
+     rr.spawn(memory_limit=memory_limit)
+ 
