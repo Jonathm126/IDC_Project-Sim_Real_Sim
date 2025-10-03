@@ -4,14 +4,14 @@ __pycache__/
 *.pyo
 
 # Virtualenv / environment
-.env/
+.env
 envs/__pycache__/
 
 # VSCode settings
 .vscode/
 
 # Logs, temp outputs
-outputs/logs/
+outputs/logs/*
 outputs/captured_images/
 eval/temp/
 eval/*.mp4
@@ -22,6 +22,13 @@ libs/obsolete_patches/
 # Heavy data/models – use git-lfs or fetch from HF
 datasets/
 policies/
-src/__pycache__/paths.cpython-310.pyc
-src/__pycache__/robot_utils.cpython-310.pyc
-src/__pycache__/utils.cpython-310.pyc
+
+# Ignore all __pycache__ directories and compiled Python files
+__pycache__/
+*.py[cod]
+
+# ignore the eval folder (datasets)
+eval/**
+# except for eval results. json
+!eval/**/eval_results.json
+

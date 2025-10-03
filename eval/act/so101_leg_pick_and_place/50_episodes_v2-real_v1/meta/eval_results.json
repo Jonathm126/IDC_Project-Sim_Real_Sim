@@ -1,0 +1,25 @@
+{
+  "per_episode": [
+    {
+      "episode_idx": null,
+      "sum_reward": null,
+      "max_reward": null,
+      "success": 0.0,
+      "seed": null
+    },
+    {
+      "episode_idx": null,
+      "sum_reward": null,
+      "max_reward": null,
+      "success": 0.0,
+      "seed": null
+    }
+  ],
+  "aggregated": {
+    "avg_sum_reward": null,
+    "avg_max_reward": null,
+    "pc_success": 0.0,
+    "eval_s": 1,
+    "eval_ep_s": 0.5
+  }
+}

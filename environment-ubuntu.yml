@@ -6,5 +6,5 @@ dependencies:
   - pip
   - pip:
       - -e libs/lerobot[feetech]
-      - -e libs/aloha
+      - -e libs/gym-aloha
       - -r requirements.override.txt
