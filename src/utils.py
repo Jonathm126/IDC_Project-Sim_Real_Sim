@@ -97,3 +97,4 @@ def check_resume(dataset_path: Path) -> bool:
             return False
 
     return True
+

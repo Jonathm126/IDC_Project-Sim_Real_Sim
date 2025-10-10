@@ -6,8 +6,10 @@ from lerobot.cameras.opencv.configuration_opencv import OpenCVCameraConfig
 from lerobot.teleoperators.so101_leader import SO101LeaderConfig, SO101Leader
 from lerobot.cameras.configs import ColorMode, Cv2Rotation
 from lerobot.robots.so101_follower import SO101FollowerConfig, SO101Follower
-from src.paths import CALIBS_DIR
 
+# my code
+from src.paths import CALIBS_DIR
+from robot.so101_follower_extended import SO101FollowerExt, SO101FollowerExtConfig
 
 # detect system
 system = platform.system()   # "Linux", "Windows", "Darwin"
@@ -39,11 +41,19 @@ camera_config = {
 }
 
 robot_config = SO101FollowerConfig(
-    port            = "/dev/ttyACM2",
+    port            = "/dev/ttyACM0",
     id              = "so_101_follower",
     cameras         = camera_config,
     calibration_dir = CALIBS_DIR
 )
+robot_ext_config = SO101FollowerExtConfig(
+    port            = robot_config.port,
+    id              = "so_101_follower",
+    cameras         = camera_config,
+    calibration_dir = CALIBS_DIR,
+    extra_motor_regs = {"Present_Current":"current"}
+)
+
 teleop_config = SO101LeaderConfig(
     port            = "/dev/ttyACM1",
     id              = "so_101_leader",
@@ -75,4 +85,5 @@ if system == "Windows":
     )
 
 robot = SO101Follower(robot_config)
+robot_ext = SO101FollowerExt(robot_ext_config)
 teleop = SO101Leader(teleop_config)

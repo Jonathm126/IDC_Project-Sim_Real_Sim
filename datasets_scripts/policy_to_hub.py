@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv(REPO_ROOT/".env", override=True)
 
 REPO_NAME         = 'so101_car_pick_and_place'
-EXPERIMENT_NAME   = '50_episodes_v0'
+EXPERIMENT_NAME   = '50_episodes_v1'
 RESUME_CHECKPOINT = None # none if latest
 POLICY_TYPE       = 'act'
 DATASET_PATH      = DATASETS_DIR / REPO_NAME
@@ -38,10 +38,10 @@ policy_cfg = PreTrainedConfig.from_pretrained(
     force_download          = False
     )
 
-train_cfg = TrainPipelineConfig.from_pretrained(
-    pretrained_name_or_path = POLICY_PATH,
-    force_download          = False,
-)
+# train_cfg = TrainPipelineConfig.from_pretrained(
+#     pretrained_name_or_path = POLICY_PATH,
+#     force_download          = False,
+# )
 
 policy = make_policy(policy_cfg, ds_meta)
 preprocessor, postprocessor = make_pre_post_processors(
@@ -49,6 +49,7 @@ preprocessor, postprocessor = make_pre_post_processors(
     pretrained_path = policy_cfg.pretrained_path
 )
 
-policy.push_model_to_hub(train_cfg)
+# policy.push_model_to_hub(train_cfg)
+policy.push_to_hub(repo_id=POLICY_ID)
 preprocessor.push_to_hub(repo_id=POLICY_ID)
 postprocessor.push_to_hub(repo_id=POLICY_ID)
