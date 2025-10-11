@@ -3,6 +3,7 @@ from google.genai import types, Client
 import math
 from PIL import ImageDraw, Image
 
+GEMINI_ID = "gemini-robotics-er-1.5-preview"
 
 # Resizing to speed-up rendering
 def get_image_resized(img_path):
