@@ -7,6 +7,7 @@ from lerobot.configs.types import PipelineFeatureType, PolicyFeature
 
 import json
 from PIL import Image
+from typing import Optional, Tuple
 from dataclasses import dataclass, field
 
 # gemini
@@ -18,12 +19,21 @@ from google.genai import Client
 class GeminiAnnotateProcessorStep(ObservationProcessorStep):
     """Get an annotated observation using Gemini for the first frame of the environment observation."""
     
-    client: Client
-    prompt: str
-    current_annotation: tuple[float, float, float] = field(init=False, default=None)
+    client: Optional[Client] = None
+    prompt: Optional[str] = None
+    manual_annotation: Optional[Tuple[float, float, float]] = None
+    current_annotation: Optional[Tuple[float, float, float]] = field(init=False, default=None)
 
     def __post_init__(self):
-        pass        # placeholder
+        if self.manual_annotation is not None:
+            # Manual mode — skip requiring client and prompt
+            self.current_annotation = self.manual_annotation
+        else:
+            # Automatic mode — require client and prompt
+            if self.client is None:
+                raise ValueError("`client` is required when `manual_annotation` is not provided.")
+            if self.prompt is None:
+                raise ValueError("`prompt` is required when `manual_annotation` is not provided.")
 
     def observation(self, observation):
         # call gemini if no previous data
@@ -55,7 +65,7 @@ class GeminiAnnotateProcessorStep(ObservationProcessorStep):
 
     def reset(self):
         # resets the annotation between episodes
-        self.current_annotation = None
+        self.current_annotation = self.manual_annotation
 
     def transform_features(
         self, features: dict[PipelineFeatureType, dict[str, any]]
