@@ -6,6 +6,8 @@ from lerobot.processor import (
 from lerobot.configs.types import PipelineFeatureType, PolicyFeature
 
 import json
+import numpy as np
+import cv2
 from PIL import Image
 from typing import Optional, Tuple
 from dataclasses import dataclass, field
@@ -23,6 +25,7 @@ class GeminiAnnotateProcessorStep(ObservationProcessorStep):
     prompt: Optional[str] = None
     manual_annotation: Optional[Tuple[float, float, float]] = None
     current_annotation: Optional[Tuple[float, float, float]] = field(init=False, default=None)
+    debug: bool = False
 
     def __post_init__(self):
         if self.manual_annotation is not None:
@@ -54,14 +57,24 @@ class GeminiAnnotateProcessorStep(ObservationProcessorStep):
             # compute geometry
             try:
                 res = json.loads(res)[0]
-                x_px, y_px, rotation_deg, annotated = compute_center_angle(res, 'front_point', 'rear_point', img)
-                self.current_annotation = (float(x_px), float(y_px), float(rotation_deg))
+                x_norm, y_norm, theta_norm, annotated = compute_center_angle(res, 'front_point', 'rear_point', img)
+                self.current_annotation = (float(x_norm), float(y_norm), float(theta_norm))
             except Exception as e:
-                raise RuntimeError(f"Failed to convert Gemini reply to geometry: {e}")
+                raise RuntimeError(f"Failed to convert Gemini reply {res} to geometry: {e}")
+
+            # optionally display image
+            if self.debug and annotated is not None:
+                if isinstance(annotated, Image.Image):
+                    annotated_np = np.array(annotated)
+                    annotated_bgr = cv2.cvtColor(annotated_np, cv2.COLOR_RGB2BGR)
+                    cv2.imshow("Gemini Annotation Debug View", annotated_bgr)
+                    cv2.waitKey(1)
+                else:
+                    print("[DEBUG] Warning: Annotated image is not a PIL.Image")
 
         # append the annotation to the env features
-        x_px, y_px, rotation_deg = self.current_annotation
-        return {**observation, 'x_px': float(x_px), 'y_px': float(y_px),'rotation_deg': float(rotation_deg)}
+        x_norm, y_norm, theta_norm = self.current_annotation
+        return {**observation, 'x_px': float(x_norm), 'y_px': float(y_norm),'rotation_deg': float(theta_norm)}
 
     def reset(self):
         # resets the annotation between episodes

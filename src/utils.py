@@ -95,6 +95,9 @@ def check_resume(dataset_path: Path) -> bool:
         if meta.get("total_episodes", 0) == 0:
             shutil.rmtree(dataset_path)
             return False
+    else:
+        shutil.rmtree(dataset_path)
+        return False
 
     return True
 

@@ -32,3 +32,5 @@ eval/**
 # except for eval results. json
 !eval/**/eval_results.json
 
+src/yolo/yolo11n.pt
+src/yolo/yolov8s-obb.pt
