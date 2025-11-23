@@ -15,6 +15,7 @@ outputs/logs/
 outputs/captured_images/
 eval/temp/
 eval/*.mp4
+eval/
 
 # Obsolete stuff
 libs/obsolete_patches/
@@ -25,3 +26,4 @@ policies/
 src/__pycache__/paths.cpython-310.pyc
 src/__pycache__/robot_utils.cpython-310.pyc
 src/__pycache__/utils.cpython-310.pyc
+.env
