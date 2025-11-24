@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import json
 import torch
 from tqdm import tqdm
 from PIL import Image
@@ -10,7 +11,7 @@ from ultralytics.utils import ops
 # define const
 YOLO_SOURCE_NAMES = ['car', 'source']
 YOLO_TARGET_NAMES = ['target']
-YOLO_COLORS = {
+YOLO_ANN_COLORS = {
     "target": (255, 140, 0),     # dark orange
     "source": (46, 139, 87),     # sea green
 }
@@ -65,7 +66,7 @@ def yolo_draw_single_obb(img, box, label, conf = None):
     Returns:
         Annotated PIL image
     """
-    assert label in YOLO_COLORS, f"Invalid label: {label}"
+    assert label in YOLO_ANN_COLORS, f"Invalid label: {label}"
     assert box.shape == (5,), "box must be single xywhr (cx,cy,w,h,r)"
     assert (box[:4] > 1).all(), "xywh must be in pixel units, not normalized"
 
@@ -79,13 +80,50 @@ def yolo_draw_single_obb(img, box, label, conf = None):
         text += f" conf:{conf:.2f}"
 
     ann = Annotator(img.copy(), pil=True)
-    ann.box_label(xyxyxyxy, text, YOLO_COLORS[label])
+    ann.box_label(xyxyxyxy, text, YOLO_ANN_COLORS[label])
 
     # cast to PIL
     res_img = ann.result()
     if isinstance(res_img, np.ndarray):
         res_img = Image.fromarray(res_img)
     return res_img
+
+def yolo_draw_center_orientation(img, x, y, r, color=(1, 0, 0), scale=40):
+    """
+    Draws center + orientation arrow using Ultralytics Annotator.
+
+    Args:
+        img: PIL.Image
+        x, y: pixel coords
+        r: angle in radians
+        color: RGB tuple
+        scale: arrow length
+    """
+    # ignore missing detections
+    if x < 0 or y < 0:
+        return img
+
+    frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+    cx, cy = int(x), int(y)
+    ex = int(float(cx + scale * np.cos(r)))
+    ey = int(float(cy + scale * np.sin(r)))
+
+    # draw circle and line
+    cv2.circle(frame, (cx, cy), 8, color, thickness=-1, lineType=cv2.LINE_AA)
+    cv2.arrowedLine(
+            frame,
+            (cx, cy),
+            (ex, ey),
+            color,
+            thickness=8,
+            tipLength=0.25,
+            line_type=cv2.LINE_AA
+        )
+
+    # to PIL
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    return Image.fromarray(frame)
 
 def yolo_map_class_name(name):
     '''
@@ -154,3 +192,23 @@ def yolo_postprocess_res(res):
     # flatten
     vec = [out[k][c] for k in ordered_classes for c in ("x","y","r")]
     return vec, ann
+
+def yolo_annotation_from_json(json_path, frame_index):
+    """
+    Load YOLO annotation vec for a single frame from an episode JSON file.
+
+    Args:
+        json_path: Path to ep_XXX.json
+        frame_index: int dataset index
+
+    Returns:
+        vec list: [sx, sy, sr, tx, ty, tr]  or None if not found
+    """
+    with open(json_path, "r") as f:
+        ann = json.load(f)
+
+    for rec in ann:
+        if rec["frame_index"] == frame_index:
+            return rec["vec"]
+
+    return None
