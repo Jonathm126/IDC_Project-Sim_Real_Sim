@@ -16,11 +16,33 @@ YOLO_ANN_COLORS = {
     "source": (46, 139, 87),     # sea green
 }
 
-def yolo_preprocess_tensor(t):
-    ''' pre-process to BGR PIL from Tensor '''
-    pil = to_pil_image(t.cpu())
-    rgb = np.array(pil)
-    return rgb[..., ::-1]
+def yolo_preprocess(x):
+    """Accepts torch.Tensor or np.ndarray (CHW or HWC).
+    Returns HWC BGR uint8 numpy."""
+    # ---- torch -> numpy ----
+    if isinstance(x, torch.Tensor):
+        x = x.detach().cpu()
+        if x.ndim == 3 and x.shape[0] in (1,3):  # CHW → HWC
+            x = x.permute(1, 2, 0)
+        x = x.numpy()
+
+    # ---- numpy ----
+    if x.ndim == 3 and x.shape[0] in (1,3):      # CHW numpy → HWC
+        x = np.transpose(x, (1,2,0))
+
+    # ensure uint8
+    if x.dtype != np.uint8:
+        x = (np.clip(x, 0, 1) * 255).astype(np.uint8)
+
+    # HWC RGB → BGR
+    return x[..., ::-1]
+
+# def yolo_preprocess_tensor(t): 
+#     ''' pre-process to BGR PIL from Tensor ''' 
+#     pil = to_pil_image(t.cpu()) 
+#     rgb = np.array(pil) 
+#     return rgb[..., ::-1]
+
 
 def yolo_video_from_dataset(model, dataset, episode, fps, out_path):
     ''' used for pure YOLO inference on a Lerobot dataset '''
@@ -31,7 +53,7 @@ def yolo_video_from_dataset(model, dataset, episode, fps, out_path):
 
     # read first frame for size
     frame = dataset[start]['observation.images.top_cam']
-    rgb = yolo_preprocess_tensor(frame)
+    rgb = yolo_preprocess(frame)
     h, w = rgb.shape[:2]
 
     # initialize video writer
@@ -42,7 +64,7 @@ def yolo_video_from_dataset(model, dataset, episode, fps, out_path):
     for idx in tqdm(range(start, end + 1)):
         frame = dataset[idx]['observation.images.top_cam']
 
-        rgb = yolo_preprocess_tensor(frame)
+        rgb = yolo_preprocess(frame)
 
         # YOLO inference (RGB in)
         results = model.predict(rgb, verbose=False)

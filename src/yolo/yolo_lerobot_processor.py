@@ -1,21 +1,17 @@
-import json
 import numpy as np
-import cv2
 
-from PIL import Image
-from typing import Optional, Tuple
 from pathlib import Path
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # lerobot
 from lerobot.processor import (
     ProcessorStepRegistry,
     ObservationProcessorStep
 )
-from lerobot.configs.types import PipelineFeatureType, PolicyFeature
+from lerobot.configs.types import PipelineFeatureType, PolicyFeature, FeatureType
 
 # yolo
-from yolo_utils import yolo_preprocess_tensor, yolo_postprocess_res
+from src.yolo.yolo_utils import yolo_preprocess, yolo_postprocess_res, yolo_draw_center_orientation, YOLO_ANN_COLORS
 from ultralytics import YOLO
 
 @dataclass
@@ -41,8 +37,8 @@ class YoloAnnotateProcessorStep(ObservationProcessorStep):
 
         # annotate
         try:
-            rgb = yolo_preprocess_tensor(img)
-            res = self.model.predict(rgb, conf=0.5, verbose=False)[0] # predict
+            bgr = yolo_preprocess(img)
+            res = self.model.predict(bgr, conf=0.5, verbose=False)[0] # predict
             vec, _ = yolo_postprocess_res(res)   # vec = [sx,sy,sr, tx,ty,tr]
         except Exception as e:
             raise RuntimeError(f"Failed to predict: {e}")
@@ -50,8 +46,13 @@ class YoloAnnotateProcessorStep(ObservationProcessorStep):
         # parse
         assert len(vec) == 6
         sx, sy, sr, tx, ty, tr  = map(float, vec)
-        assert all((0 <= v <= 1.0 or v == -1.0) for v in (sx, sy, tx, ty))
+        assert all((0 <= v <= 1.0) or v == -1.0 for v in (sx, sy, tx, ty))
         assert all((-np.pi/2 <= v <= np.pi/2) for v in (sr, tr))
+        
+        # annotate
+        H,W = img.shape[:2]
+        ann = yolo_draw_center_orientation(img.copy(), sx*W, sy*H, sr, YOLO_ANN_COLORS["source"])
+        ann = yolo_draw_center_orientation(ann, tx*W, ty*H, tr, YOLO_ANN_COLORS["target"])
 
         # return scalar fields
         return {
@@ -62,6 +63,7 @@ class YoloAnnotateProcessorStep(ObservationProcessorStep):
             "target_x": tx,
             "target_y": ty,
             "target_r": tr,
+            f"{self.cam_name}_bbox": np.array(ann)
         }
 
     def reset(self):
@@ -80,12 +82,10 @@ class YoloAnnotateProcessorStep(ObservationProcessorStep):
             The updated policy features dictionary.
         """
         # Add our new env-state feature
-        features[PipelineFeatureType.OBSERVATION]["observation.environment_state"] = PolicyFeature(
-            dtype="float32",
-            shape=[6],
-            names=[
-                "source_x", "source_y", "source_r",
-                "target_x", "target_y", "target_r",
-            ],
-        )
+        for name in ["source_x", "source_y", "source_r",
+                    "target_x", "target_y", "target_r"]:
+            features[PipelineFeatureType.OBSERVATION][name] = PolicyFeature(
+                type = FeatureType.ENV,
+                shape = (1,)
+            )
         return features
