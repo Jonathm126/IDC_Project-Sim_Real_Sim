@@ -113,7 +113,6 @@ def yolo_draw_single_obb(img, box, label, conf = None):
 def yolo_draw_center_orientation(img, x, y, r, color=(1, 0, 0), scale=40):
     """
     Draws center + orientation arrow using Ultralytics Annotator.
-
     Args:
         img: PIL.Image
         x, y: pixel coords
@@ -124,16 +123,15 @@ def yolo_draw_center_orientation(img, x, y, r, color=(1, 0, 0), scale=40):
     # ignore missing detections
     if x < 0 or y < 0:
         return img
-
     frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-
+    # draw circle
     cx, cy = int(x), int(y)
-    ex = int(float(cx + scale * np.cos(r)))
-    ey = int(float(cy + scale * np.sin(r)))
-
-    # draw circle and line
     cv2.circle(frame, (cx, cy), 8, color, thickness=-1, lineType=cv2.LINE_AA)
-    cv2.arrowedLine(
+    # only draw orientation if r is provided (not None)
+    if r is not None:
+        ex = int(cx + scale * np.cos(r))
+        ey = int(cy + scale * np.sin(r))
+        cv2.arrowedLine(
             frame,
             (cx, cy),
             (ex, ey),
@@ -142,7 +140,6 @@ def yolo_draw_center_orientation(img, x, y, r, color=(1, 0, 0), scale=40):
             tipLength=0.25,
             line_type=cv2.LINE_AA
         )
-
     # to PIL
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return Image.fromarray(frame)

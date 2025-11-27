@@ -19,9 +19,10 @@ from ultralytics import YOLO
 class YoloAnnotateProcessorStep(ObservationProcessorStep):
     """Get an the environment state vector which includes the position and orientation (x,y,r) of the source and target items.
     Uses a pre-trained YOLO sub-model for this annotation.
-    Inputs: path to yolo model (.pt)"""
+    Inputs: path to yolo model (.pt), cam name (str), xy_only (bool - default false)"""
     model_path: Path
     cam_name: str
+    xy_only: bool = False
 
     def __post_init__(self):
         try:
@@ -47,24 +48,31 @@ class YoloAnnotateProcessorStep(ObservationProcessorStep):
         assert len(vec) == 6
         sx, sy, sr, tx, ty, tr  = map(float, vec)
         assert all((0 <= v <= 1.0) or v == -1.0 for v in (sx, sy, tx, ty))
-        assert all((-np.pi/2 <= v <= np.pi/2) for v in (sr, tr))
+        if not self.xy_only:
+            assert all((-np.pi/2 <= v <= np.pi/2) for v in (sr, tr))
         
         # annotate
         H,W = img.shape[:2]
-        ann = yolo_draw_center_orientation(img.copy(), sx*W, sy*H, sr, YOLO_ANN_COLORS["source"])
-        ann = yolo_draw_center_orientation(ann, tx*W, ty*H, tr, YOLO_ANN_COLORS["target"])
+        ann = yolo_draw_center_orientation(img.copy(), sx*W, sy*H,
+                                        None if self.xy_only else sr,
+                                        YOLO_ANN_COLORS["source"])
+        ann = yolo_draw_center_orientation(ann, tx*W, ty*H,
+                                        None if self.xy_only else tr,
+                                        YOLO_ANN_COLORS["target"])
 
         # return scalar fields
-        return {
+        out = {
             **observation,
             "source_x": sx,
             "source_y": sy,
-            "source_r": sr,
             "target_x": tx,
             "target_y": ty,
-            "target_r": tr,
-            f"{self.cam_name}_bbox": np.array(ann)
+            f"{self.cam_name}_bbox": np.array(ann),
         }
+        if not self.xy_only:
+            out["source_r"] = sr
+            out["target_r"] = tr
+        return out
 
     def reset(self):
         pass
@@ -82,8 +90,10 @@ class YoloAnnotateProcessorStep(ObservationProcessorStep):
             The updated policy features dictionary.
         """
         # Add our new env-state feature
-        for name in ["source_x", "source_y", "source_r",
-                    "target_x", "target_y", "target_r"]:
+        names = ["source_x", "source_y", "target_x", "target_y"]
+        if not self.xy_only:
+            names += ["source_r", "target_r"]
+        for name in names:
             features[PipelineFeatureType.OBSERVATION][name] = PolicyFeature(
                 type = FeatureType.ENV,
                 shape = (1,)
