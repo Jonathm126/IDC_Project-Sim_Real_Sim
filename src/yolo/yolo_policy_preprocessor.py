@@ -2,19 +2,22 @@ from lerobot.processor.pipeline import (
     ProcessorStep,
     ProcessorStepRegistry,
     TransitionKey,
-    EnvTransition
+    EnvTransition,
+    PipelineFeatureType,
+    PolicyFeature
 )
 from dataclasses import dataclass
+from typing import List
 
 @dataclass
 @ProcessorStepRegistry.register(name="filter_env_processor")
 class FilterEnvObsProcessorStep(ProcessorStep):
-    """ Removes selected column indices from a batched feature tensor (B×D)
+    """ Removes selected column indices from a batched feature tensor (BxD)
     feature_name (e.g. "observation.environment_state")
     columns_to_remove (list of indices)"""
 
-    feature_name: str = "observation.environment_state"
-    remove_indices: list[int] = None   # e.g. [2, 5]
+    feature_name: str = None
+    remove_indices: list[int] = None 
     
     def __post_init__(self):
         if self.remove_indices is None:
@@ -29,3 +32,40 @@ class FilterEnvObsProcessorStep(ProcessorStep):
 
     def transform_features(self, features):
         return features
+
+@dataclass
+@ProcessorStepRegistry.register(name="remove_feature_processor")
+class RemoveFeatureProcessorStep(ProcessorStep):
+    """
+    Removes a feature entirely from a transition.
+    feature_name: str  
+    """
+    remove_feature_names: List[str] | None = None
+
+    def __call__(self, transition: EnvTransition) -> EnvTransition:
+        if not self.remove_feature_names:
+            return transition
+
+        obs_key = TransitionKey.OBSERVATION.value
+        obs = transition.get(obs_key) or {}
+
+        return {
+            **transition,
+            obs_key: {k: v for k, v in obs.items() if k not in self.remove_feature_names},
+        }
+
+    def transform_features(
+        self, features: dict[PipelineFeatureType, dict[str, PolicyFeature]]
+    ) -> dict[PipelineFeatureType, dict[str, PolicyFeature]]:
+        # nothing to remove
+        if not self.remove_feature_names:
+            return features
+
+        obs = features.get(PipelineFeatureType.OBSERVATION, {})
+
+        return {
+                **features,
+                PipelineFeatureType.OBSERVATION: {
+                    k: v for k, v in obs.items() if k not in self.remove_feature_names
+                },
+        }

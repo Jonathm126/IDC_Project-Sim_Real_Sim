@@ -244,7 +244,7 @@ def train_extended(cfg: TrainPipelineConfig, extra_pipeline: list):
         sampler=sampler,
         pin_memory=device.type == "cuda",
         drop_last=False,
-        prefetch_factor=2,
+        prefetch_factor=2, # comment for debug
         # prefetch_factor = None
     )
     dl_iter = cycle(dataloader)
