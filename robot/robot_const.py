@@ -25,3 +25,21 @@ TABLE_START_POSE_OPEN = {
 'wrist_roll.pos'   : -54.204872936861406,
 'gripper.pos'      : 50
 }
+
+JOINT_POS_NAMES = [
+    'shoulder_pan.pos',
+    'shoulder_lift.pos',
+    'elbow_flex.pos',
+    'wrist_flex.pos',
+    'wrist_roll.pos',
+    'gripper.pos',
+]
+
+JOINT_CURRENT_NAMES = [
+    'shoulder_pan.current',
+    'shoulder_lift.current',
+    'elbow_flex.current',
+    'wrist_flex.current',
+    'wrist_roll.current',
+    'gripper.current',
+]

@@ -131,6 +131,7 @@ def yolo_draw_center_orientation(img, x, y, r, color=(1, 0, 0), scale=40):
     if r is not None:
         ex = int(cx + scale * np.cos(r))
         ey = int(cy + scale * np.sin(r))
+
         cv2.arrowedLine(
             frame,
             (cx, cy),
@@ -139,6 +140,18 @@ def yolo_draw_center_orientation(img, x, y, r, color=(1, 0, 0), scale=40):
             thickness=8,
             tipLength=0.25,
             line_type=cv2.LINE_AA
+        )
+        # --- Add angle text ---
+        text = f"{r:.2f} rad"
+        cv2.putText(
+            frame,
+            text,
+            (cx + 10, cy - 10),          # offset from center
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            color,
+            2,
+            cv2.LINE_AA
         )
     # to PIL
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
