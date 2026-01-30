@@ -199,8 +199,15 @@ def train_extended(cfg: TrainPipelineConfig, extra_pipeline: list):
     preprocessor, postprocessor = make_pre_post_processors(
         policy_cfg=cfg.policy, pretrained_path=cfg.policy.pretrained_path, **processor_kwargs
     )
+
     if extra_pipeline is not None:
         preprocessor.steps.extend(extra_pipeline)
+        # for i, step in enumerate(preprocessor.steps):
+        #     if step.__class__.__name__ == "RenameObservationsProcessorStep":
+        #         preprocessor.steps[i + 1:i + 1] = extra_pipeline
+        #         break
+        # else:
+        #     raise RuntimeError("RenameObservationsProcessorStep not found")
 
     logging.info("Creating optimizer and scheduler")
     optimizer, lr_scheduler = make_optimizer_and_scheduler(cfg, policy)

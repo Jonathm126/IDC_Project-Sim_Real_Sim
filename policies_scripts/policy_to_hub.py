@@ -15,8 +15,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv(REPO_ROOT/".env", override=True)
 
-REPO_NAME         = 'so101_car_pick_and_place'
-EXPERIMENT_NAME   = '50_episodes_v1'
+REPO_NAME         = 'so101_pick_pen-bbox'
+EXPERIMENT_NAME   = 'bbox_v0'
 RESUME_CHECKPOINT = None # none if latest
 POLICY_TYPE       = 'act'
 DATASET_PATH      = DATASETS_DIR / REPO_NAME
