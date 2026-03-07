@@ -12,9 +12,7 @@ envs/__pycache__/
 
 # Logs, temp outputs
 outputs/
-eval/temp/
-eval/*.mp4
-eval/
+
 
 # Obsolete stuff
 libs/obsolete_patches/
@@ -27,10 +25,6 @@ policies/
 __pycache__/
 *.py[cod]
 
-# ignore the eval folder (datasets)
-eval/**
-# except for eval results. json
-!eval/**/eval_results.json
 
 src/yolo/yolo11n.pt
 src/yolo/yolov8s-obb.pt
