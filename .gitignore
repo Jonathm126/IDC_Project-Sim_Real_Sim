@@ -11,8 +11,7 @@ envs/__pycache__/
 .vscode/
 
 # Logs, temp outputs
-outputs/logs/*
-outputs/captured_images/
+outputs/
 eval/temp/
 eval/*.mp4
 eval/
