@@ -62,145 +62,125 @@
   <div class="container narrow">
     <h2 class="section-title">Abstract</h2>
     <div class="abstract-card">
-      <p>We evaluate and extend the <strong>Action Chunking Transformer (ACT)</strong> policy on two real-world pick-and-place tasks using the SO-101 six-degree-of-freedom robotic arm and the LeRobot framework. Through a systematic series of experiments we characterize how dataset size, model capacity, action chunk size, and temporal ensembling affect task success rate.</p>
-      <p>Results show that <strong>data quantity is the dominant factor</strong>: doubling the dataset from 48 to 96 episodes improves the car pick-and-place success rate from 58.3% to 85.4%, while increasing Transformer depth degrades performance when the dataset is held constant. We also find that ACT generalizes poorly to out-of-distribution initial conditions, confirming its sensitivity to distribution shift; reducing training duration does not close this gap, indicating that the failure is not classic overfitting.</p>
-      <p>We then extend ACT with <strong>YOLO-based state augmentation</strong>: a fine-tuned YOLOv8-OBB model detects object positions at inference time and injects bounding-box coordinates directly into the policy state vector. Both YOLO models achieve near-perfect validation accuracy yet the augmented ACT policies underperform their baselines on both tasks. We discuss the likely causes and propose concrete remedies. The codebase, trained models, and evaluation datasets are released publicly on Hugging Face and GitHub.</p>
+      <p>We evaluate the <strong>Action Chunking Transformer (ACT)</strong> on two real pick-and-place tasks with a SO-101 arm, ablating dataset size, model depth, chunk size, and temporal ensembling.</p>
+      <p><strong>Data quantity dominates:</strong> doubling demos (48→96) lifts car success from 58% to 85%. Larger models hurt without more data. ACT fails sharply on out-of-distribution positions — and training longer doesn't fix it.</p>
+      <p>We extend ACT with <strong>YOLO state augmentation</strong> — injecting detected object pose (u, v, θ) into the state vector — but the augmented policy underperforms baselines on both tasks. Failure modes are concrete and addressable.</p>
     </div>
   </div>
 </section>
 
-<!-- ── BACKGROUND ─────────────────────────────────────────────────── -->
-<section id="background" class="section section-gray">
+<!-- ── ACT IN CONTEXT ──────────────────────────────────────────────── -->
+<section id="act" class="section section-gray">
   <div class="container">
-    <h2 class="section-title">Background</h2>
-    <p class="section-subtitle">A brief primer on the three pillars underlying this work.</p>
-    <div class="card-grid card-grid-3">
+    <h2 class="section-title">ACT in Context</h2>
+    <p class="section-subtitle">Where the Action Chunking Transformer sits in the robot learning ecosystem.</p>
 
-      <div class="card">
-        <div class="card-icon icon-blue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-        </div>
-        <h3>Robot Manipulation</h3>
-        <p>Classical robotics relies on explicit task programming: inverse kinematics, trajectory planning, and engineered perception. These pipelines are brittle — a new object or scene requires hand-engineered adaptation. Learning-based methods replace much of this with data, enabling policies that generalize from demonstrations.</p>
+    <div class="ecosystem-layout">
+
+      <!-- Left: Venn diagram -->
+      <div class="ecosystem-venn">
+        <svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg" class="venn-svg" role="img" aria-label="ACT Venn diagram showing intersection of imitation learning, transformer models, and practical deployment">
+
+          <!-- Circle 1: Imitation Learning — top -->
+          <circle cx="200" cy="120" r="115" fill="rgba(59,130,246,0.10)" stroke="#3b82f6" stroke-width="1.8"/>
+          <!-- Circle 2: Generative / Transformer — bottom-left -->
+          <circle cx="125" cy="245" r="115" fill="rgba(168,85,247,0.10)" stroke="#a855f7" stroke-width="1.8"/>
+          <!-- Circle 3: Compact & Practical — bottom-right -->
+          <circle cx="275" cy="245" r="115" fill="rgba(5,150,105,0.10)" stroke="#059669" stroke-width="1.8"/>
+
+          <!-- Circle labels (outside) -->
+          <text x="200" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#3b82f6">Imitation Learning</text>
+          <text x="200" y="32" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#60a5fa">learns from demos</text>
+
+          <text x="44" y="330" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#a855f7">Generative</text>
+          <text x="44" y="343" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#c084fc">Transformer</text>
+
+          <text x="356" y="330" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#059669">Practical</text>
+          <text x="356" y="343" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#34d399">low-data</text>
+
+          <!-- Partial intersection labels -->
+          <!-- IL ∩ Generative (not practical): Diffusion Policy, VLAs -->
+          <text x="138" y="162" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#7c3aed">Diffusion Policy</text>
+          <text x="138" y="174" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#7c3aed">VLAs</text>
+
+          <!-- IL ∩ Practical (not generative): Behavioral Cloning -->
+          <text x="262" y="162" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#1d4ed8">Behavioral</text>
+          <text x="262" y="174" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#1d4ed8">Cloning</text>
+
+          <!-- ACT at center — highlighted pill -->
+          <ellipse cx="200" cy="202" rx="34" ry="20" fill="#4f46e5" opacity="0.92"/>
+          <text x="200" y="207" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#ffffff">ACT</text>
+        </svg>
       </div>
 
-      <div class="card">
-        <div class="card-icon icon-purple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <!-- Right: text + arch diagram -->
+      <div class="ecosystem-right">
+        <div class="act-blurb">
+          <p>ACT sits at the <strong>practical sweet spot</strong>: more expressive than plain behavioral cloning, yet trainable on tens of demonstrations without large-scale infrastructure. A <strong>CVAE encoder</strong> compresses demonstration trajectories into a style variable <em>z</em>, which conditions a <strong>Transformer decoder</strong> to predict a chunk of <em>K</em> future joint angles in a single forward pass.</p>
+          <p>Predicting K steps at once (action chunking) avoids compounding errors. <strong>Temporal ensembling</strong> — blending overlapping chunks with exponential weights — further smooths execution.</p>
+          <div class="act-links" style="margin-top:1rem">
+            <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="badge badge-outline">ACT Paper ↗</a>
+            <a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener" class="badge badge-outline">LeRobot ↗</a>
+          </div>
         </div>
-        <h3>Imitation Learning</h3>
-        <p>Imitation Learning (IL) trains a policy to mimic human demonstrations directly, bypassing the need to hand-craft reward functions. Behavioral Cloning fits a supervised model to (observation, action) pairs; generative IL methods — such as diffusion policies and transformer-based approaches — model the full action distribution, capturing multi-modal behavior and improving temporal coherence.</p>
-      </div>
 
-      <div class="card">
-        <div class="card-icon icon-green">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        </div>
-        <h3>Generalist Policies &amp; VLAs</h3>
-        <p>Transformer architectures have enabled a wave of visuomotor policies — from ACT to Diffusion Policy to full Vision-Language-Action models (OpenVLA, π₀) — that digest raw camera frames and output robot actions. The field is moving toward cross-embodiment generalists trained on internet-scale data, but lightweight single-task policies like ACT remain the practical entry-point for low-resource settings.</p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ── ACT POLICY ─────────────────────────────────────────────────── -->
-<section id="act" class="section section-white">
-  <div class="container">
-    <h2 class="section-title">The ACT Policy</h2>
-    <p class="section-subtitle">Action Chunking Transformer — a compact, practical imitation learning policy.</p>
-
-    <div class="act-layout">
-      <!-- Text -->
-      <div class="act-text">
-        <p>ACT encodes each demonstrated trajectory via a <strong>Conditional VAE (CVAE)</strong> encoder that compresses the action sequence into a latent style variable <em>z</em>. At inference, <em>z</em> is sampled from a learned prior. A <strong>Transformer decoder</strong> then attends to current observations (joint states + RGB frames processed by a ResNet-18 backbone) to autoregressively generate a chunk of <em>K</em> future actions in one forward pass.</p>
-        <p><strong>Action chunking</strong> (predicting K steps at once) prevents the compounding error of step-by-step BC. <strong>Temporal ensembling</strong> (exponentially weighted average of overlapping chunks) further smooths execution and reduces jitter.</p>
-        <div class="act-links">
-          <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="badge badge-outline">ACT Paper ↗</a>
-          <a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener" class="badge badge-outline">LeRobot ↗</a>
-        </div>
-      </div>
-
-      <!-- SVG Architecture Diagram -->
-      <div class="act-diagram">
-        <svg viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg" class="arch-svg" role="img" aria-label="ACT architecture diagram">
+        <!-- Compact arch SVG -->
+        <svg viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg" class="arch-svg" role="img" aria-label="ACT architecture diagram" style="margin-top:1.5rem">
           <defs>
-            <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
               <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
             </marker>
           </defs>
-          <!-- Observations -->
-          <rect x="10" y="80" width="90" height="40" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
-          <text x="55" y="96" text-anchor="middle" class="svg-label">Joint State</text>
-          <text x="55" y="110" text-anchor="middle" class="svg-label-sm">q ∈ ℝ⁶</text>
+          <!-- Inputs -->
+          <rect x="8" y="50" width="80" height="34" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="48" y="63" text-anchor="middle" class="svg-label">Joint State</text>
+          <text x="48" y="77" text-anchor="middle" class="svg-label-sm">q ∈ ℝ⁶</text>
 
-          <rect x="10" y="140" width="90" height="40" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
-          <text x="55" y="156" text-anchor="middle" class="svg-label">RGB Frames</text>
-          <text x="55" y="170" text-anchor="middle" class="svg-label-sm">top + wrist</text>
+          <rect x="8" y="98" width="80" height="34" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="48" y="111" text-anchor="middle" class="svg-label">RGB Frames</text>
+          <text x="48" y="125" text-anchor="middle" class="svg-label-sm">top + wrist</text>
 
           <!-- ResNet -->
-          <rect x="130" y="130" width="80" height="40" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
-          <text x="170" y="148" text-anchor="middle" class="svg-label">ResNet-18</text>
-          <text x="170" y="162" text-anchor="middle" class="svg-label-sm">visual feats</text>
+          <rect x="112" y="88" width="72" height="34" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+          <text x="148" y="103" text-anchor="middle" class="svg-label">ResNet-18</text>
+          <text x="148" y="116" text-anchor="middle" class="svg-label-sm">visual feats</text>
 
-          <!-- CVAE -->
-          <rect x="130" y="50" width="80" height="50" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
-          <text x="170" y="70" text-anchor="middle" class="svg-label">CVAE</text>
-          <text x="170" y="85" text-anchor="middle" class="svg-label-sm">Encoder</text>
-          <text x="170" y="96" text-anchor="middle" class="svg-label-sm">→ z</text>
+          <!-- CVAE (train only) -->
+          <rect x="112" y="30" width="72" height="40" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <text x="148" y="47" text-anchor="middle" class="svg-label">CVAE</text>
+          <text x="148" y="61" text-anchor="middle" class="svg-label-sm">→ z  (train)</text>
 
           <!-- Transformer -->
-          <rect x="250" y="80" width="100" height="120" rx="8" fill="#fdf2f8" stroke="#a855f7" stroke-width="2"/>
-          <text x="300" y="108" text-anchor="middle" class="svg-label" font-weight="600">Transformer</text>
-          <text x="300" y="124" text-anchor="middle" class="svg-label-sm">Decoder</text>
-          <text x="300" y="150" text-anchor="middle" class="svg-label-sm">cross-attention</text>
-          <text x="300" y="164" text-anchor="middle" class="svg-label-sm">to observations</text>
-          <text x="300" y="183" text-anchor="middle" class="svg-label-sm">+ style z</text>
+          <rect x="212" y="44" width="90" height="100" rx="8" fill="#fdf2f8" stroke="#a855f7" stroke-width="2"/>
+          <text x="257" y="68" text-anchor="middle" class="svg-label" font-weight="600">Transformer</text>
+          <text x="257" y="83" text-anchor="middle" class="svg-label-sm">Decoder</text>
+          <text x="257" y="110" text-anchor="middle" class="svg-label-sm">obs + z</text>
+          <text x="257" y="126" text-anchor="middle" class="svg-label-sm">→ K actions</text>
 
-          <!-- Output -->
-          <rect x="395" y="100" width="95" height="80" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="442" y="128" text-anchor="middle" class="svg-label" font-weight="600">Action</text>
-          <text x="442" y="144" text-anchor="middle" class="svg-label">Chunk</text>
-          <text x="442" y="162" text-anchor="middle" class="svg-label-sm">â_{t:t+K}</text>
-          <text x="442" y="175" text-anchor="middle" class="svg-label-sm">K joint cmds</text>
+          <!-- Action chunk -->
+          <rect x="330" y="60" width="80" height="66" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="370" y="82" text-anchor="middle" class="svg-label" font-weight="600">Action</text>
+          <text x="370" y="96" text-anchor="middle" class="svg-label">Chunk</text>
+          <text x="370" y="116" text-anchor="middle" class="svg-label-sm">â_{t:t+K}</text>
+
+          <!-- TE box -->
+          <rect x="425" y="60" width="48" height="66" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+          <text x="449" y="88" text-anchor="middle" class="svg-label-sm" font-weight="700">TE</text>
+          <text x="449" y="103" text-anchor="middle" class="svg-label-sm">blend</text>
+          <text x="449" y="116" text-anchor="middle" class="svg-label-sm">λ=0.01</text>
 
           <!-- Arrows -->
-          <line x1="100" y1="100" x2="128" y2="80" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
-          <line x1="100" y1="155" x2="128" y2="155" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
-          <line x1="210" y1="170" x2="248" y2="150" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
-          <line x1="210" y1="75" x2="248" y2="110" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
-          <line x1="350" y1="140" x2="393" y2="140" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="88" y1="67" x2="110" y2="52" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="88" y1="113" x2="110" y2="107" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="184" y1="106" x2="210" y2="106" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="184" y1="50" x2="210" y2="70" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="302" y1="94" x2="328" y2="94" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="410" y1="94" x2="423" y2="94" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
 
-          <!-- TE annotation -->
-          <text x="442" y="220" text-anchor="middle" class="svg-caption">Temporal Ensembling:</text>
-          <text x="442" y="235" text-anchor="middle" class="svg-caption">aₜ = Σ λⁱ â_{t-i} (λ=0.01)</text>
-
-          <!-- Training note -->
-          <text x="170" y="248" text-anchor="middle" class="svg-caption">Training only</text>
-          <text x="170" y="262" text-anchor="middle" class="svg-caption">(z ~ prior at inference)</text>
+          <!-- Caption -->
+          <text x="148" y="165" text-anchor="middle" class="svg-caption">dashed = training only</text>
         </svg>
       </div>
-    </div>
-
-    <!-- Hyperparameter table -->
-    <h3 class="subsection-title">Default Hyperparameters (LeRobot ACT)</h3>
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Parameter</th><th>Value</th>
-            <th>Parameter</th><th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Vision backbone</td><td>ResNet-18 (ImageNet)</td><td>Model dimension</td><td>512</td></tr>
-          <tr><td>Attention heads</td><td>8</td><td>Feedforward dim</td><td>3200</td></tr>
-          <tr><td>VAE latent dim</td><td>32</td><td>VAE encoder layers</td><td>4</td></tr>
-          <tr><td>Dropout</td><td>0.1</td><td>KL weight β</td><td>10</td></tr>
-          <tr><td>Learning rate</td><td>1×10⁻⁵</td><td>Weight decay</td><td>1×10⁻⁴</td></tr>
-          <tr><td>Backbone LR</td><td>1×10⁻⁵</td><td>Use VAE</td><td>True</td></tr>
-        </tbody>
-      </table>
     </div>
   </div>
 </section>

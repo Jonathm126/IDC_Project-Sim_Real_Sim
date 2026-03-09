@@ -195,7 +195,7 @@ img { max-width: 100%; height: auto; display: block; }
 .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
 .card p  { font-size: .9rem; color: var(--text-muted); line-height: 1.6; }
 
-/* ── ACT Section ─────────────────────────────────────────────────── */
+/* ── ACT / Ecosystem Section ─────────────────────────────────────── */
 .act-layout {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 40px; align-items: start; margin-bottom: 40px;
@@ -203,6 +203,14 @@ img { max-width: 100%; height: auto; display: block; }
 .act-text p { font-size: .97rem; color: var(--text); line-height: 1.75; margin-bottom: 16px; }
 .act-links  { display: flex; gap: 10px; margin-top: 20px; }
 .act-diagram { display: flex; flex-direction: column; }
+
+.ecosystem-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 48px; align-items: center;
+}
+.venn-svg { width: 100%; max-width: 400px; margin: 0 auto; display: block; }
+.ecosystem-right { display: flex; flex-direction: column; }
+.act-blurb p { font-size: .97rem; color: var(--text); line-height: 1.75; margin-bottom: 14px; }
 
 .arch-svg { width: 100%; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; }
 .svg-label    { font-size: 11px; font-family: 'Inter', sans-serif; fill: #111827; }
@@ -469,7 +477,8 @@ img { max-width: 100%; height: auto; display: block; }
 @media (max-width: 900px) {
   .card-grid-3 { grid-template-columns: 1fr 1fr; }
   .card-grid-4 { grid-template-columns: 1fr 1fr; }
-  .act-layout  { grid-template-columns: 1fr; }
+  .act-layout       { grid-template-columns: 1fr; }
+  .ecosystem-layout { grid-template-columns: 1fr; }
   .setup-robot { grid-template-columns: 1fr; }
   .exp-content { grid-template-columns: 1fr; }
   .yolo-approach   { grid-template-columns: 1fr; }
