@@ -137,10 +137,6 @@
           <span class="act-mech-num">02</span>
           <h4>Action Chunking</h4>
         </div>
-        <div class="fig-placeholder fig-placeholder-sm" data-fig="chunking">
-          <span class="fig-placeholder-label">Action chunking diagram</span>
-          <span class="fig-placeholder-hint">Copy <code>chunking.png</code> → <code>docs/assets/img/</code></span>
-        </div>
         <p class="act-mech-text">Instead of predicting one action at a time, ACT predicts a <strong>chunk of K consecutive actions</strong> per forward pass. Step-by-step behavioral cloning accumulates errors — a small mistake in one action corrupts all that follow. Chunking breaks this dependency: the policy "commits" to a short plan, dramatically reducing compounding error. The chunk size K is a key hyperparameter; in this work we ablate K ∈ {25, 50, 100, 150}.</p>
       </div>
 
