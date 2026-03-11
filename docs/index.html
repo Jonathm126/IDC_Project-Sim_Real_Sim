@@ -73,114 +73,90 @@
 <section id="act" class="section section-gray">
   <div class="container">
     <h2 class="section-title">ACT in Context</h2>
-    <p class="section-subtitle">Where the Action Chunking Transformer sits in the robot learning ecosystem.</p>
+    <p class="section-subtitle">Where the Action Chunking Transformer sits — and how it works.</p>
 
+    <!-- Row 1: Venn + intro -->
     <div class="ecosystem-layout">
 
       <!-- Left: Venn diagram -->
       <div class="ecosystem-venn">
-        <svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg" class="venn-svg" role="img" aria-label="ACT Venn diagram showing intersection of imitation learning, transformer models, and practical deployment">
-
-          <!-- Circle 1: Imitation Learning — top -->
+        <svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg" class="venn-svg" role="img" aria-label="ACT Venn diagram">
           <circle cx="200" cy="120" r="115" fill="rgba(59,130,246,0.10)" stroke="#3b82f6" stroke-width="1.8"/>
-          <!-- Circle 2: Generative / Transformer — bottom-left -->
           <circle cx="125" cy="245" r="115" fill="rgba(168,85,247,0.10)" stroke="#a855f7" stroke-width="1.8"/>
-          <!-- Circle 3: Compact & Practical — bottom-right -->
           <circle cx="275" cy="245" r="115" fill="rgba(5,150,105,0.10)" stroke="#059669" stroke-width="1.8"/>
-
-          <!-- Circle labels (outside) -->
           <text x="200" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#3b82f6">Imitation Learning</text>
           <text x="200" y="32" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#60a5fa">learns from demos</text>
-
           <text x="44" y="330" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#a855f7">Generative</text>
           <text x="44" y="343" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#c084fc">Transformer</text>
-
           <text x="356" y="330" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#059669">Practical</text>
           <text x="356" y="343" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#34d399">low-data</text>
-
-          <!-- Partial intersection labels -->
-          <!-- IL ∩ Generative (not practical): Diffusion Policy, VLAs -->
           <text x="138" y="162" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#7c3aed">Diffusion Policy</text>
           <text x="138" y="174" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#7c3aed">VLAs</text>
-
-          <!-- IL ∩ Practical (not generative): Behavioral Cloning -->
           <text x="262" y="162" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#1d4ed8">Behavioral</text>
           <text x="262" y="174" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#1d4ed8">Cloning</text>
-
-          <!-- ACT at center — highlighted pill -->
           <ellipse cx="200" cy="202" rx="34" ry="20" fill="#4f46e5" opacity="0.92"/>
           <text x="200" y="207" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#ffffff">ACT</text>
         </svg>
       </div>
 
-      <!-- Right: text + arch diagram -->
+      <!-- Right: what is ACT -->
       <div class="ecosystem-right">
         <div class="act-blurb">
-          <p>ACT sits at the <strong>practical sweet spot</strong>: more expressive than plain behavioral cloning, yet trainable on tens of demonstrations without large-scale infrastructure. A <strong>CVAE encoder</strong> compresses demonstration trajectories into a style variable <em>z</em>, which conditions a <strong>Transformer decoder</strong> to predict a chunk of <em>K</em> future joint angles in a single forward pass.</p>
-          <p>Predicting K steps at once (action chunking) avoids compounding errors. <strong>Temporal ensembling</strong> — blending overlapping chunks with exponential weights — further smooths execution.</p>
+          <p><strong>ACT</strong> <em>(Action Chunking with Transformers, <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al. 2023</a>)</em> is an imitation learning policy for robot manipulation. It is trained purely on human teleoperation demonstrations — no reward function, no simulation — and runs directly on the robot at inference time.</p>
+          <p>ACT occupies a <strong>practical sweet spot</strong> in the policy landscape: more expressive than plain behavioral cloning (it models the full action distribution via a generative model), yet compact enough to train from tens of demonstrations on a single GPU. This makes it the go-to baseline for low-resource real-robot settings.</p>
+          <p>In this work ACT is trained and evaluated using <strong><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot</a></strong> — HuggingFace's open-source robotics framework — on a SO-101 6-DoF arm.</p>
           <div class="act-links" style="margin-top:1rem">
             <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="badge badge-outline">ACT Paper ↗</a>
+            <a href="https://tonyzhaozh.github.io/aloha/" target="_blank" rel="noopener" class="badge badge-outline">Project Page ↗</a>
             <a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener" class="badge badge-outline">LeRobot ↗</a>
           </div>
         </div>
-
-        <!-- Compact arch SVG -->
-        <svg viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg" class="arch-svg" role="img" aria-label="ACT architecture diagram" style="margin-top:1.5rem">
-          <defs>
-            <marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
-            </marker>
-          </defs>
-          <!-- Inputs -->
-          <rect x="8" y="50" width="80" height="34" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
-          <text x="48" y="63" text-anchor="middle" class="svg-label">Joint State</text>
-          <text x="48" y="77" text-anchor="middle" class="svg-label-sm">q ∈ ℝ⁶</text>
-
-          <rect x="8" y="98" width="80" height="34" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
-          <text x="48" y="111" text-anchor="middle" class="svg-label">RGB Frames</text>
-          <text x="48" y="125" text-anchor="middle" class="svg-label-sm">top + wrist</text>
-
-          <!-- ResNet -->
-          <rect x="112" y="88" width="72" height="34" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
-          <text x="148" y="103" text-anchor="middle" class="svg-label">ResNet-18</text>
-          <text x="148" y="116" text-anchor="middle" class="svg-label-sm">visual feats</text>
-
-          <!-- CVAE (train only) -->
-          <rect x="112" y="30" width="72" height="40" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5" stroke-dasharray="4 2"/>
-          <text x="148" y="47" text-anchor="middle" class="svg-label">CVAE</text>
-          <text x="148" y="61" text-anchor="middle" class="svg-label-sm">→ z  (train)</text>
-
-          <!-- Transformer -->
-          <rect x="212" y="44" width="90" height="100" rx="8" fill="#fdf2f8" stroke="#a855f7" stroke-width="2"/>
-          <text x="257" y="68" text-anchor="middle" class="svg-label" font-weight="600">Transformer</text>
-          <text x="257" y="83" text-anchor="middle" class="svg-label-sm">Decoder</text>
-          <text x="257" y="110" text-anchor="middle" class="svg-label-sm">obs + z</text>
-          <text x="257" y="126" text-anchor="middle" class="svg-label-sm">→ K actions</text>
-
-          <!-- Action chunk -->
-          <rect x="330" y="60" width="80" height="66" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="370" y="82" text-anchor="middle" class="svg-label" font-weight="600">Action</text>
-          <text x="370" y="96" text-anchor="middle" class="svg-label">Chunk</text>
-          <text x="370" y="116" text-anchor="middle" class="svg-label-sm">â_{t:t+K}</text>
-
-          <!-- TE box -->
-          <rect x="425" y="60" width="48" height="66" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
-          <text x="449" y="88" text-anchor="middle" class="svg-label-sm" font-weight="700">TE</text>
-          <text x="449" y="103" text-anchor="middle" class="svg-label-sm">blend</text>
-          <text x="449" y="116" text-anchor="middle" class="svg-label-sm">λ=0.01</text>
-
-          <!-- Arrows -->
-          <line x1="88" y1="67" x2="110" y2="52" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="88" y1="113" x2="110" y2="107" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="184" y1="106" x2="210" y2="106" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="184" y1="50" x2="210" y2="70" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="302" y1="94" x2="328" y2="94" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="410" y1="94" x2="423" y2="94" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-
-          <!-- Caption -->
-          <text x="148" y="165" text-anchor="middle" class="svg-caption">dashed = training only</text>
-        </svg>
       </div>
+    </div>
+
+    <!-- Row 2: How it works — 3 mechanics cards -->
+    <h3 class="subsection-title" style="margin-top:2.5rem">How It Works</h3>
+    <div class="act-mechanics">
+
+      <!-- 1. Architecture -->
+      <div class="card act-mech-card">
+        <div class="act-mech-header">
+          <span class="act-mech-num">01</span>
+          <h4>Architecture</h4>
+        </div>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="act-cvae">
+          <span class="fig-placeholder-label">ACT CVAE architecture</span>
+          <span class="fig-placeholder-hint">Copy <code>act-cvae.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="act-mech-text">A <strong>Conditional VAE encoder</strong> (active only during training) takes the full demonstration trajectory and compresses it into a latent style variable <em>z</em> that captures movement intent. A <strong>Transformer decoder</strong> then attends to the current observations — 6 joint angles plus RGB frames from two cameras processed by a ResNet-18 backbone — and, conditioned on <em>z</em>, autoregressively decodes a sequence of <em>K</em> target joint angles in one forward pass. At inference, <em>z</em> is sampled from the learned prior <em>N(0, I)</em>.</p>
+      </div>
+
+      <!-- 2. Action Chunking -->
+      <div class="card act-mech-card">
+        <div class="act-mech-header">
+          <span class="act-mech-num">02</span>
+          <h4>Action Chunking</h4>
+        </div>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="chunking">
+          <span class="fig-placeholder-label">Action chunking diagram</span>
+          <span class="fig-placeholder-hint">Copy <code>chunking.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="act-mech-text">Instead of predicting one action at a time, ACT predicts a <strong>chunk of K consecutive actions</strong> per forward pass. Step-by-step behavioral cloning accumulates errors — a small mistake in one action corrupts all that follow. Chunking breaks this dependency: the policy "commits" to a short plan, dramatically reducing compounding error. The chunk size K is a key hyperparameter; in this work we ablate K ∈ {25, 50, 100, 150}.</p>
+      </div>
+
+      <!-- 3. Temporal Ensembling -->
+      <div class="card act-mech-card">
+        <div class="act-mech-header">
+          <span class="act-mech-num">03</span>
+          <h4>Temporal Ensembling</h4>
+        </div>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="chunking+te">
+          <span class="fig-placeholder-label">Temporal ensembling diagram</span>
+          <span class="fig-placeholder-hint">Copy <code>chunking+te.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="act-mech-text">Chunk boundaries can cause visible jitter as the robot switches from one plan to the next. Temporal ensembling mitigates this: at every timestep, overlapping chunks are queried and their predictions are blended with <strong>exponentially decaying weights</strong> — older chunks contribute less. The final action is <em>aₜ = Σ λⁱ â<sub>t−i</sub></em> with λ = 0.01. This yields smoother, more confident execution at the cost of a small reactivity lag.</p>
+      </div>
+
     </div>
   </div>
 </section>
