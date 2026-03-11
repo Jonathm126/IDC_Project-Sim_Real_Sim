@@ -208,7 +208,30 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 48px; align-items: center;
 }
-.venn-svg { width: 100%; max-width: 400px; margin: 0 auto; display: block; }
+.ecosystem-table { align-self: center; }
+.ecosystem-table-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-muted); margin-bottom: 12px;
+}
+.policy-table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+.policy-table th {
+  text-align: left; padding: 8px 12px;
+  font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--text-muted); border-bottom: 2px solid var(--border);
+}
+.policy-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.policy-table tbody tr:last-child td { border-bottom: none; }
+.policy-table tbody tr:not(.policy-row-highlight):hover { background: rgba(0,0,0,.02); }
+.policy-row-highlight { background: var(--accent-light); }
+.policy-row-highlight td:first-child { font-weight: 700; color: var(--accent-dark); }
+.ptag {
+  display: inline-block; padding: 2px 9px; border-radius: 20px;
+  font-size: .72rem; font-weight: 600; white-space: nowrap;
+}
+.ptag-green  { background: var(--success-bg); color: var(--success); }
+.ptag-yellow { background: var(--warn-bg);    color: var(--warn);    }
+.ptag-red    { background: var(--danger-bg);  color: var(--danger);  }
+
 .ecosystem-right { display: flex; flex-direction: column; }
 .act-blurb p { font-size: .97rem; color: var(--text); line-height: 1.75; margin-bottom: 14px; }
 .act-blurb a { color: var(--accent); text-decoration: none; }
@@ -228,6 +251,11 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .act-mech-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
 .act-mech-text { font-size: .88rem; color: var(--text-muted); line-height: 1.7; margin: 0; }
+/* Constrain images that replace placeholders inside mechanics cards */
+.act-mech-card img { max-height: 160px; width: auto; max-width: 100%; object-fit: contain; border-radius: 8px; margin: 0 auto; }
+
+/* Figure credit line (for copied paper figures) */
+.fig-credit { font-size: .73rem; color: var(--text-light); font-style: italic; text-align: center; margin-top: 4px; }
 
 .arch-svg { width: 100%; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; }
 .svg-label    { font-size: 11px; font-family: 'Inter', sans-serif; fill: #111827; }

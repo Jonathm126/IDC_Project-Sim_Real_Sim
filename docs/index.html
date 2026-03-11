@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/style.css?v=2" />
 </head>
 <body>
 
@@ -78,25 +78,45 @@
     <!-- Row 1: Venn + intro -->
     <div class="ecosystem-layout">
 
-      <!-- Left: Venn diagram -->
-      <div class="ecosystem-venn">
-        <svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg" class="venn-svg" role="img" aria-label="ACT Venn diagram">
-          <circle cx="200" cy="120" r="115" fill="rgba(59,130,246,0.10)" stroke="#3b82f6" stroke-width="1.8"/>
-          <circle cx="125" cy="245" r="115" fill="rgba(168,85,247,0.10)" stroke="#a855f7" stroke-width="1.8"/>
-          <circle cx="275" cy="245" r="115" fill="rgba(5,150,105,0.10)" stroke="#059669" stroke-width="1.8"/>
-          <text x="200" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#3b82f6">Imitation Learning</text>
-          <text x="200" y="32" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#60a5fa">learns from demos</text>
-          <text x="44" y="330" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#a855f7">Generative</text>
-          <text x="44" y="343" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#c084fc">Transformer</text>
-          <text x="356" y="330" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#059669">Practical</text>
-          <text x="356" y="343" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#34d399">low-data</text>
-          <text x="138" y="162" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#7c3aed">Diffusion Policy</text>
-          <text x="138" y="174" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#7c3aed">VLAs</text>
-          <text x="262" y="162" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#1d4ed8">Behavioral</text>
-          <text x="262" y="174" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#1d4ed8">Cloning</text>
-          <ellipse cx="200" cy="202" rx="34" ry="20" fill="#4f46e5" opacity="0.92"/>
-          <text x="200" y="207" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#ffffff">ACT</text>
-        </svg>
+      <!-- Left: Policy comparison table -->
+      <div class="ecosystem-table">
+        <p class="ecosystem-table-label">Policy landscape</p>
+        <table class="policy-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Core idea</th>
+              <th>Data</th>
+              <th>Speed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Behavioral Cloning</td>
+              <td>Direct action regression</td>
+              <td><span class="ptag ptag-green">Low</span></td>
+              <td><span class="ptag ptag-green">Fast</span></td>
+            </tr>
+            <tr class="policy-row-highlight">
+              <td><strong>ACT ✦</strong></td>
+              <td>CVAE + action chunking</td>
+              <td><span class="ptag ptag-green">Low</span></td>
+              <td><span class="ptag ptag-green">Fast</span></td>
+            </tr>
+            <tr>
+              <td>Diffusion Policy</td>
+              <td>Score-matching denoising</td>
+              <td><span class="ptag ptag-yellow">Medium</span></td>
+              <td><span class="ptag ptag-red">Slow</span></td>
+            </tr>
+            <tr>
+              <td>VLAs</td>
+              <td>Vision-language backbone</td>
+              <td><span class="ptag ptag-red">Very high</span></td>
+              <td><span class="ptag ptag-red">Very slow</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Right: what is ACT -->
@@ -128,6 +148,7 @@
           <span class="fig-placeholder-label">ACT CVAE architecture</span>
           <span class="fig-placeholder-hint">Copy <code>act-cvae.png</code> → <code>docs/assets/img/</code></span>
         </div>
+        <p class="fig-credit">Figure: Zhao et al. (2023)</p>
         <p class="act-mech-text">A <strong>Conditional VAE encoder</strong> (active only during training) takes the full demonstration trajectory and compresses it into a latent style variable <em>z</em> that captures movement intent. A <strong>Transformer decoder</strong> then attends to the current observations — 6 joint angles plus RGB frames from two cameras processed by a ResNet-18 backbone — and, conditioned on <em>z</em>, autoregressively decodes a sequence of <em>K</em> target joint angles in one forward pass. At inference, <em>z</em> is sampled from the learned prior <em>N(0, I)</em>.</p>
       </div>
 
@@ -150,6 +171,7 @@
           <span class="fig-placeholder-label">Temporal ensembling diagram</span>
           <span class="fig-placeholder-hint">Copy <code>chunking+te.png</code> → <code>docs/assets/img/</code></span>
         </div>
+        <p class="fig-credit">Figure: Zhao et al. (2023)</p>
         <p class="act-mech-text">Chunk boundaries can cause visible jitter as the robot switches from one plan to the next. Temporal ensembling mitigates this: at every timestep, overlapping chunks are queried and their predictions are blended with <strong>exponentially decaying weights</strong> — older chunks contribute less. The final action is <em>aₜ = Σ λⁱ â<sub>t−i</sub></em> with λ = 0.01. This yields smoother, more confident execution at the cost of a small reactivity lag.</p>
       </div>
 
@@ -169,7 +191,12 @@
           <span class="fig-placeholder-label">SO-101 Robot Setup</span>
           <span class="fig-placeholder-hint">Copy <code>so101-infer-setup.png</code> → <code>docs/assets/img/</code></span>
         </div>
-        <p class="fig-caption">SO-101 leader–follower teleoperation setup (left), inference setup (center), joint kinematics (right).</p>
+        <p class="fig-caption">SO-101 leader–follower teleoperation setup (left) and inference setup (right).</p>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="so101-kinematics" style="margin-top:16px">
+          <span class="fig-placeholder-label">SO-101 joint kinematics</span>
+          <span class="fig-placeholder-hint">Copy <code>so101-kinematics.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="fig-caption">SO-101 joint configuration and degrees of freedom.</p>
       </div>
       <div class="setup-robot-specs">
         <h3>Robotic System</h3>
@@ -207,6 +234,10 @@
           <li>Score: <span class="badge-score success">1</span> placed · <span class="badge-score partial">0.5</span> lifted · <span class="badge-score fail">0</span> failed</li>
           <li>Evaluation: 24 rollouts per model</li>
         </ul>
+        <div class="video-placeholder video-placeholder-sm" data-video="car_success_k100.mp4" style="margin-top:12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Successful car pick-and-place rollout</span>
+        </div>
       </div>
 
       <div class="card task-card">
@@ -226,6 +257,10 @@
           <li>Score: <span class="badge-score success">1</span> inserted · <span class="badge-score partial">0.5</span> lifted · <span class="badge-score fail">0</span> failed</li>
           <li>Evaluation: 20 rollouts per model</li>
         </ul>
+        <div class="video-placeholder video-placeholder-sm" data-video="pen_success.mp4" style="margin-top:12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Successful pick-pen rollout</span>
+        </div>
       </div>
 
     </div>
