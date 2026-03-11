@@ -193,9 +193,9 @@
     <!-- Robot -->
     <div class="setup-robot">
       <div class="setup-robot-img">
-        <div class="fig-placeholder" data-fig="fig44_robot_setup">
-          <span class="fig-placeholder-label">Figure 44 — SO-101 Robot Setup</span>
-          <span class="fig-placeholder-hint">Add <code>docs/assets/img/fig44_robot_setup.png</code></span>
+        <div class="fig-placeholder" data-fig="so101-infer-setup">
+          <span class="fig-placeholder-label">SO-101 Robot Setup</span>
+          <span class="fig-placeholder-hint">Copy <code>so101-infer-setup.png</code> → <code>docs/assets/img/</code></span>
         </div>
         <p class="fig-caption">SO-101 leader–follower teleoperation setup (left), inference setup (center), joint kinematics (right).</p>
       </div>
@@ -223,9 +223,9 @@
           <div class="task-badge task-badge-blue">Task 1</div>
           <h4>Car Pick-and-Place</h4>
         </div>
-        <div class="fig-placeholder fig-placeholder-sm" data-fig="fig45_car_task">
-          <span class="fig-placeholder-label">Figure 45 — Car task setup</span>
-          <span class="fig-placeholder-hint">Add <code>docs/assets/img/fig45_car_task.png</code></span>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="task-car">
+          <span class="fig-placeholder-label">Car task — top view</span>
+          <span class="fig-placeholder-hint">Copy <code>task-car.png</code> → <code>docs/assets/img/</code></span>
         </div>
         <p class="fig-caption">Top view: 5 source positions, 4 orientations, 3 target bins.</p>
         <ul class="task-specs">
@@ -242,9 +242,9 @@
           <div class="task-badge task-badge-orange">Task 2</div>
           <h4>Pick Pen</h4>
         </div>
-        <div class="fig-placeholder fig-placeholder-sm" data-fig="fig46_pen_task">
-          <span class="fig-placeholder-label">Figure 46 — Pick-pen setup</span>
-          <span class="fig-placeholder-hint">Add <code>docs/assets/img/fig46_pen_task.png</code></span>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="task-pen">
+          <span class="fig-placeholder-label">Pick Pen — top view</span>
+          <span class="fig-placeholder-hint">Copy <code>task-pen.png</code> → <code>docs/assets/img/</code></span>
         </div>
         <p class="fig-caption">Top view: 5 source positions, distractor pens, single target cup.</p>
         <ul class="task-specs">
@@ -296,9 +296,9 @@
           <canvas id="chartDatasetSize" height="260"></canvas>
         </div>
         <div class="exp-side">
-          <div class="fig-placeholder fig-placeholder-sm" data-fig="fig47_car_traj">
-            <span class="fig-placeholder-label">Figure 47 — Episode trajectory</span>
-            <span class="fig-placeholder-hint">Add <code>docs/assets/img/fig47_car_traj.png</code></span>
+          <div class="fig-placeholder fig-placeholder-sm" data-fig="so101-car-rollout">
+            <span class="fig-placeholder-label">Car pick-and-place rollout frames</span>
+            <span class="fig-placeholder-hint">Copy <code>so101-car-rollout.png</code> → <code>docs/assets/img/</code></span>
           </div>
           <p class="fig-caption">Sample trajectory and wrist/top camera frames from a car pick-and-place episode.</p>
         </div>
@@ -340,9 +340,9 @@
           <canvas id="chartModelSize" height="260"></canvas>
         </div>
         <div class="exp-side">
-          <div class="fig-placeholder fig-placeholder-sm" data-fig="fig52_loss_curves">
-            <span class="fig-placeholder-label">Figure 52 — Loss curves</span>
-            <span class="fig-placeholder-hint">Add <code>docs/assets/img/fig52_loss_curves.png</code></span>
+          <div class="fig-placeholder fig-placeholder-sm" data-fig="model-size-loss-2">
+            <span class="fig-placeholder-label">Small vs. Large model — training loss</span>
+            <span class="fig-placeholder-hint">Copy <code>model-size-loss-2.png</code> → <code>docs/assets/img/</code></span>
           </div>
           <p class="fig-caption">Training loss for Small vs. Large model on the pen task — both converge, ruling out insufficient training as the cause of the Large model's collapse.</p>
           <div class="mini-table">
@@ -673,9 +673,15 @@
         <canvas id="chartYoloMAP" height="260"></canvas>
       </div>
       <div>
-        <div class="fig-placeholder" data-fig="fig62_obb_annotations">
-          <span class="fig-placeholder-label">Figure 62 — OBB annotations</span>
-          <span class="fig-placeholder-hint">Add <code>docs/assets/img/fig62_obb_annotations.png</code></span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="fig-placeholder" data-fig="yolo-car-annotation">
+            <span class="fig-placeholder-label">Car OBB annotations</span>
+            <span class="fig-placeholder-hint">Copy <code>yolo-car-annotation.png</code> → <code>docs/assets/img/</code></span>
+          </div>
+          <div class="fig-placeholder" data-fig="yolo-pen-annotation">
+            <span class="fig-placeholder-label">Pen OBB annotations</span>
+            <span class="fig-placeholder-hint">Copy <code>yolo-pen-annotation.png</code> → <code>docs/assets/img/</code></span>
+          </div>
         </div>
         <p class="fig-caption">OBB annotations: car (source = toy car, target = drop zone) and pen (source = red pen, target = cup).</p>
         <div class="table-wrap">
@@ -692,9 +698,13 @@
 
     <!-- YOLO inference image -->
     <div class="fig-full-width">
-      <div class="fig-placeholder" data-fig="fig64_yolo_inference">
-        <span class="fig-placeholder-label">Figure 64 — Qualitative YOLO-OBB inference</span>
-        <span class="fig-placeholder-hint">Add <code>docs/assets/img/fig64_yolo_inference.png</code></span>
+      <div class="fig-placeholder" data-fig="car_val_batch0_pred">
+        <span class="fig-placeholder-label">YOLO inference — Car task</span>
+        <span class="fig-placeholder-hint">Copy <code>car_val_batch0_pred.jpg</code> → <code>docs/assets/img/</code></span>
+      </div>
+      <div class="fig-placeholder" style="margin-top:8px" data-fig="pen_val_batch0_pred">
+        <span class="fig-placeholder-label">YOLO inference — Pen task</span>
+        <span class="fig-placeholder-hint">Copy <code>pen_val_batch0_pred.jpg</code> → <code>docs/assets/img/</code></span>
       </div>
       <p class="fig-caption">Qualitative YOLOv8-OBB inference on frames from car (top) and pen (bottom) episodes. Source in blue, target in cyan. Failures occur mainly when the robot arm occludes the object.</p>
     </div>
