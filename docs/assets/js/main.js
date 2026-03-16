@@ -53,22 +53,41 @@ function mergeDeep(target, source) {
 
 function barOpts(extra = {}) { return mergeDeep(chartDefaults, extra); }
 
-/* ── 1. Dataset Size Chart ─────────────────────────────────────── */
+/* ── 1. Dataset Size Chart (scatter + line) ────────────────────── */
 (function() {
   const ctx = document.getElementById('chartDatasetSize');
   if (!ctx) return;
   new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
-      labels: ['25–26 ep (26%)', '48–50 ep (50%)', '75–96 ep (100%)'],
       datasets: [
-        { label: 'Car Pick-and-Place', data: [0.354, 0.583, 0.854],
-          backgroundColor: CAR_COLOR, borderColor: CAR_BORDER, borderWidth: 2, borderRadius: 5 },
-        { label: 'Pick Pen', data: [0.100, 0.500, 0.550],
-          backgroundColor: PEN_COLOR, borderColor: PEN_BORDER, borderWidth: 2, borderRadius: 5 }
+        {
+          label: 'Car Pick-and-Place',
+          data: [{x: 25, y: 0.354}, {x: 50, y: 0.583}, {x: 100, y: 0.854}],
+          borderColor: CAR_BORDER, backgroundColor: CAR_COLOR,
+          pointRadius: 6, pointHoverRadius: 8, borderWidth: 2.5, tension: 0, fill: false
+        },
+        {
+          label: 'Pick Pen',
+          data: [{x: 25, y: 0.100}, {x: 50, y: 0.500}, {x: 100, y: 0.550}],
+          borderColor: PEN_BORDER, backgroundColor: PEN_COLOR,
+          pointRadius: 6, pointHoverRadius: 8, borderWidth: 2.5, tension: 0, fill: false
+        }
       ]
     },
-    options: barOpts({ plugins: { title: { display: true, text: 'Success Rate vs. Dataset Size', font: { family: 'Inter', size: 13, weight: '600' } } } })
+    options: mergeDeep(chartDefaults, {
+      plugins: {
+        title: { display: true, text: 'Success Rate vs. Dataset Size', font: { family: 'Inter', size: 13, weight: '600' } }
+      },
+      scales: {
+        x: {
+          type: 'linear', min: 10, max: 115,
+          afterBuildTicks: scale => { scale.ticks = [{value:25},{value:50},{value:100}]; },
+          ticks: { callback: v => v + '%' },
+          title: { display: true, text: 'Dataset fraction', font: { family: 'Inter', size: 11 }, color: '#6b7280' }
+        }
+      }
+    })
   });
 })();
 
