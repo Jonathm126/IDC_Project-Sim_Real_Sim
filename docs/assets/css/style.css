@@ -332,11 +332,9 @@ img { max-width: 100%; height: auto; display: block; }
 .finding-box {
   border-radius: var(--radius); padding: 16px 20px;
   margin: 20px 0; font-size: .93rem; line-height: 1.65;
-  border-left: 4px solid;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-light); color: #312e81;
 }
-.finding-green { background: var(--success-bg); border-color: var(--success); color: #065f46; }
-.finding-red   { background: var(--danger-bg);  border-color: var(--danger);  color: #7f1d1d; }
-.finding-blue  { background: var(--blue-bg);    border-color: var(--blue);    color: #1e3a5f; }
 
 /* ── Tables ──────────────────────────────────────────────────────── */
 .table-wrap { overflow-x: auto; }

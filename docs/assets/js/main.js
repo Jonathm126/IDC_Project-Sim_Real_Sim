@@ -81,7 +81,7 @@ function barOpts(extra = {}) { return mergeDeep(chartDefaults, extra); }
       },
       scales: {
         x: {
-          type: 'linear', min: 10, max: 115,
+          type: 'logarithmic', min: 18, max: 140,
           afterBuildTicks: scale => { scale.ticks = [{value:25},{value:50},{value:100}]; },
           ticks: { callback: v => v + '%' },
           title: { display: true, text: 'Dataset fraction', font: { family: 'Inter', size: 11 }, color: '#6b7280' }

@@ -252,35 +252,12 @@
         </div>
       </div>
 
-      <div class="exp-content">
-        <div class="exp-chart-wrap">
-          <canvas id="chartDatasetSize" height="260"></canvas>
-        </div>
-        <div class="exp-side">
-          <div class="fig-placeholder fig-placeholder-sm" data-fig="so101-car-rollout">
-            <span class="fig-placeholder-label">Car pick-and-place rollout frames</span>
-            <span class="fig-placeholder-hint">Copy <code>so101-car-rollout.png</code> → <code>docs/assets/img/</code></span>
-          </div>
-          <p class="fig-caption">Sample trajectory and wrist/top camera frames from a car pick-and-place episode.</p>
-        </div>
+      <div class="exp-chart-wrap" style="max-width:560px">
+        <canvas id="chartDatasetSize" height="260"></canvas>
       </div>
 
-      <div class="finding-box finding-green">
+      <div class="finding-box">
         <strong>Key finding:</strong> Doubling the car dataset from 48 to 96 episodes raises success from 58% → 85%. Data quantity is the dominant performance driver — the gains are superlinear, not incremental.
-      </div>
-
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Task</th><th>Episodes</th><th>Fraction</th><th>Success Rate</th></tr></thead>
-          <tbody>
-            <tr class="row-car"><td>Car</td><td>25</td><td>26%</td><td>0.354</td></tr>
-            <tr class="row-car"><td>Car</td><td>48</td><td>50%</td><td>0.583</td></tr>
-            <tr class="row-car row-best"><td>Car</td><td>96</td><td>100%</td><td><strong>0.854</strong></td></tr>
-            <tr class="row-pen"><td>Pen</td><td>25</td><td>33%</td><td>0.100</td></tr>
-            <tr class="row-pen"><td>Pen</td><td>50</td><td>67%</td><td>0.500</td></tr>
-            <tr class="row-pen row-best"><td>Pen</td><td>75</td><td>100%</td><td><strong>0.550</strong></td></tr>
-          </tbody>
-        </table>
       </div>
     </div>
 
@@ -301,11 +278,6 @@
           <canvas id="chartModelSize" height="260"></canvas>
         </div>
         <div class="exp-side">
-          <div class="fig-placeholder fig-placeholder-sm" data-fig="model-size-loss-2">
-            <span class="fig-placeholder-label">Small vs. Large model — training loss</span>
-            <span class="fig-placeholder-hint">Copy <code>model-size-loss-2.png</code> → <code>docs/assets/img/</code></span>
-          </div>
-          <p class="fig-caption">Training loss for Small vs. Large model on the pen task — both converge, ruling out insufficient training as the cause of the Large model's collapse.</p>
           <div class="mini-table">
             <table class="data-table data-table-mini">
               <thead><tr><th>Size</th><th>Params</th><th>VRAM</th></tr></thead>
@@ -319,7 +291,7 @@
         </div>
       </div>
 
-      <div class="finding-box finding-red">
+      <div class="finding-box">
         <strong>Key finding:</strong> Medium (6,2) improves over Small on both tasks, but Large (8,4) collapses sharply (Car: 0.625→0.354; Pen: 0.600→0.100). The additional model capacity is not supported by the small dataset — the same pattern as any ML scaling law.
       </div>
     </div>
@@ -363,7 +335,7 @@
         </div>
       </div>
 
-      <div class="finding-box finding-blue">
+      <div class="finding-box">
         <strong>Key finding:</strong> K=100 is optimal for car; temporal ensembling performs best on pen but introduces a grasp-failure mode by averaging "open/close" commands. Both parameters require per-task tuning.
       </div>
     </div>
@@ -385,40 +357,11 @@
           <canvas id="chartOOD" height="260"></canvas>
         </div>
         <div class="exp-side">
-          <!-- SVG position grid -->
-          <div class="ood-grid-wrap">
-            <svg viewBox="0 0 260 220" class="ood-grid-svg" role="img" aria-label="In-sample vs out-of-sample positions">
-              <!-- Grid background -->
-              <rect x="10" y="10" width="240" height="200" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-              <!-- Table surface line -->
-              <line x1="30" y1="60" x2="230" y2="60" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,2"/>
-              <!-- In-sample positions (blue circles) -->
-              <circle cx="60" cy="120" r="12" fill="#3b82f6" opacity="0.85"/>
-              <circle cx="110" cy="120" r="12" fill="#3b82f6" opacity="0.85"/>
-              <circle cx="160" cy="120" r="12" fill="#3b82f6" opacity="0.85"/>
-              <circle cx="210" cy="120" r="12" fill="#3b82f6" opacity="0.85"/>
-              <circle cx="60" cy="170" r="12" fill="#3b82f6" opacity="0.85"/>
-              <circle cx="160" cy="170" r="12" fill="#3b82f6" opacity="0.85"/>
-              <circle cx="210" cy="170" r="12" fill="#3b82f6" opacity="0.85"/>
-              <!-- Out-of-sample positions (red diamonds) -->
-              <polygon points="85,120 97,132 85,144 73,132" fill="#ef4444" opacity="0.85"/>
-              <polygon points="135,120 147,132 135,144 123,132" fill="#ef4444" opacity="0.85"/>
-              <polygon points="85,170 97,182 85,194 73,182" fill="#ef4444" opacity="0.85"/>
-              <polygon points="135,170 147,182 135,194 123,182" fill="#ef4444" opacity="0.85"/>
-              <polygon points="185,170 197,182 185,194 173,182" fill="#ef4444" opacity="0.85"/>
-              <!-- Labels -->
-              <text x="130" y="30" text-anchor="middle" fill="#1e40af" font-size="11" font-weight="600">Target Bins (1–3)</text>
-              <rect x="30" y="42" width="20" height="14" rx="2" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1"/>
-              <rect x="60" y="42" width="20" height="14" rx="2" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1"/>
-              <rect x="90" y="42" width="20" height="14" rx="2" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1"/>
-              <!-- Legend -->
-              <circle cx="30" cy="205" r="5" fill="#3b82f6"/>
-              <text x="40" y="209" font-size="9" fill="#374151">In-sample</text>
-              <polygon points="90,205 96,211 90,217 84,211" fill="#ef4444"/>
-              <text x="100" y="209" font-size="9" fill="#374151">Out-of-sample</text>
-            </svg>
-            <p class="fig-caption">Blue: training poses. Red: OOD evaluation poses (between positions or diagonal orientations).</p>
+          <div class="fig-placeholder" data-fig="in-out-sample-eval">
+            <span class="fig-placeholder-label">In-sample vs. out-of-sample positions</span>
+            <span class="fig-placeholder-hint">Copy <code>in-out-sample-eval.png</code> → <code>docs/assets/img/</code></span>
           </div>
+          <p class="fig-caption">Blue: training poses. Red: OOD evaluation poses (between positions or diagonal orientations).</p>
         </div>
       </div>
 
@@ -433,18 +376,8 @@
         </div>
       </div>
 
-      <div class="finding-box finding-red">
+      <div class="finding-box">
         <strong>Key finding:</strong> In-sample success improves from 60% → 85% with more training, but out-of-sample performance stays at 19% for both checkpoints. <em>This is not classic overfitting</em> — the policy simply has no coverage of unseen states.
-      </div>
-
-      <div class="table-wrap table-center">
-        <table class="data-table">
-          <thead><tr><th>Checkpoint</th><th>In-Sample</th><th>Out-of-Sample</th></tr></thead>
-          <tbody>
-            <tr><td>50k steps</td><td>0.604</td><td>0.194</td></tr>
-            <tr class="row-best"><td>100k steps</td><td><strong>0.854</strong></td><td>0.194</td></tr>
-          </tbody>
-        </table>
       </div>
     </div>
 
@@ -466,7 +399,7 @@
           <div class="failure-icon">🔴</div>
           <h4>Mode Collapse</h4>
           <p>Robot reaches an intermediate pose and freezes — stuck between two motion modes from the training data.</p>
-          <div class="video-placeholder video-placeholder-sm" data-video="fail_mode_collapse.mp4">
+          <div class="video-placeholder" data-video="fail_mode_collapse.mp4">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
             <span>Video</span>
           </div>
@@ -476,7 +409,7 @@
           <div class="failure-icon">🟡</div>
           <h4>Oscillation Loop</h4>
           <p>Robot shakes/vibrates repeatedly around a fixed position without making progress toward the goal.</p>
-          <div class="video-placeholder video-placeholder-sm" data-video="fail_oscillation.mp4">
+          <div class="video-placeholder" data-video="fail_oscillation.mp4">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
             <span>Video</span>
           </div>
@@ -486,7 +419,7 @@
           <div class="failure-icon">🟠</div>
           <h4>Action Drift</h4>
           <p>Robot slowly wanders off-course over the episode — cumulative error in long action horizons.</p>
-          <div class="video-placeholder video-placeholder-sm" data-video="fail_drift.mp4">
+          <div class="video-placeholder" data-video="fail_drift.mp4">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
             <span>Video</span>
           </div>
@@ -496,7 +429,7 @@
           <div class="failure-icon">⚫</div>
           <h4>Grasp Failure</h4>
           <p>Robot misses the object, applies wrong force, or drops it after grasping. Common with temporal ensembling.</p>
-          <div class="video-placeholder video-placeholder-sm" data-video="fail_grasp.mp4">
+          <div class="video-placeholder" data-video="fail_grasp.mp4">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
             <span>Video</span>
           </div>
@@ -506,7 +439,7 @@
           <div class="failure-icon">🔵</div>
           <h4>Recovery Failure</h4>
           <p>After making an error, the robot cannot self-correct — no recovery demonstrations were in the training set.</p>
-          <div class="video-placeholder video-placeholder-sm" data-video="fail_recovery.mp4">
+          <div class="video-placeholder" data-video="fail_recovery.mp4">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
             <span>Video</span>
           </div>
