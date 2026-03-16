@@ -354,8 +354,6 @@ img { max-width: 100%; height: auto; display: block; }
   padding: 10px 14px; border-bottom: 1px solid var(--border);
 }
 .data-table tbody tr:hover { background: #fafafa; }
-.data-table .row-best { background: #f0fdf4; }
-.data-table .row-best:hover { background: #e6f9ee; }
 .data-table .row-car td { border-left: 3px solid var(--blue); }
 .data-table .row-pen td { border-left: 3px solid var(--warn); }
 
@@ -412,15 +410,14 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ── Failure Mode Grid ───────────────────────────────────────────── */
 .failure-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  gap: 14px; margin: 20px 0;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin: 20px 0;
 }
 .failure-card {
   background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 16px;
   box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 8px;
 }
-.failure-icon { font-size: 1.3rem; }
 .failure-card h4 { font-size: .9rem; font-weight: 700; }
 .failure-card p  { font-size: .82rem; color: var(--text-muted); line-height: 1.5; flex: 1; }
 
@@ -532,7 +529,7 @@ img { max-width: 100%; height: auto; display: block; }
   .exp-content { grid-template-columns: 1fr; }
   .yolo-approach   { grid-template-columns: 1fr; }
   .yolo-train-grid { grid-template-columns: 1fr; }
-  .failure-grid { grid-template-columns: repeat(3, 1fr); }
+  .failure-grid { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr; }
 }
 

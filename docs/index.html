@@ -252,8 +252,23 @@
         </div>
       </div>
 
-      <div class="exp-chart-wrap" style="max-width:560px">
-        <canvas id="chartDatasetSize" height="260"></canvas>
+      <div class="exp-content">
+        <div class="exp-chart-wrap">
+          <canvas id="chartDatasetSize" height="260"></canvas>
+        </div>
+        <div class="exp-side">
+          <table class="data-table data-table-mini">
+            <thead><tr><th>Task</th><th>Fraction</th><th>Success</th></tr></thead>
+            <tbody>
+              <tr class="row-car"><td>Car</td><td>25%</td><td>35.4%</td></tr>
+              <tr class="row-car"><td>Car</td><td>50%</td><td>58.3%</td></tr>
+              <tr class="row-car"><td>Car</td><td>100%</td><td><strong>85.4%</strong></td></tr>
+              <tr class="row-pen"><td>Pen</td><td>25%</td><td>10.0%</td></tr>
+              <tr class="row-pen"><td>Pen</td><td>50%</td><td>50.0%</td></tr>
+              <tr class="row-pen"><td>Pen</td><td>100%</td><td><strong>55.0%</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div class="finding-box">
@@ -353,7 +368,7 @@
       </div>
 
       <div class="exp-content">
-        <div class="exp-chart-wrap">
+        <div class="exp-chart-wrap" style="max-width:480px">
           <canvas id="chartOOD" height="260"></canvas>
         </div>
         <div class="exp-side">
@@ -396,7 +411,6 @@
       <div class="failure-grid">
 
         <div class="failure-card">
-          <div class="failure-icon">🔴</div>
           <h4>Mode Collapse</h4>
           <p>Robot reaches an intermediate pose and freezes — stuck between two motion modes from the training data.</p>
           <div class="video-placeholder" data-video="fail_mode_collapse.mp4">
@@ -406,7 +420,6 @@
         </div>
 
         <div class="failure-card">
-          <div class="failure-icon">🟡</div>
           <h4>Oscillation Loop</h4>
           <p>Robot shakes/vibrates repeatedly around a fixed position without making progress toward the goal.</p>
           <div class="video-placeholder" data-video="fail_oscillation.mp4">
@@ -416,7 +429,6 @@
         </div>
 
         <div class="failure-card">
-          <div class="failure-icon">🟠</div>
           <h4>Action Drift</h4>
           <p>Robot slowly wanders off-course over the episode — cumulative error in long action horizons.</p>
           <div class="video-placeholder" data-video="fail_drift.mp4">
@@ -426,7 +438,6 @@
         </div>
 
         <div class="failure-card">
-          <div class="failure-icon">⚫</div>
           <h4>Grasp Failure</h4>
           <p>Robot misses the object, applies wrong force, or drops it after grasping. Common with temporal ensembling.</p>
           <div class="video-placeholder" data-video="fail_grasp.mp4">
@@ -436,7 +447,6 @@
         </div>
 
         <div class="failure-card">
-          <div class="failure-icon">🔵</div>
           <h4>Recovery Failure</h4>
           <p>After making an error, the robot cannot self-correct — no recovery demonstrations were in the training set.</p>
           <div class="video-placeholder" data-video="fail_recovery.mp4">
