@@ -267,6 +267,10 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 32px; align-items: start; margin-bottom: 40px;
 }
+.setup-robot-figs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; align-items: start; margin-bottom: 0;
+}
 .spec-list { list-style: none; padding: 0; }
 .spec-list li {
   display: flex; justify-content: space-between;
@@ -526,6 +530,7 @@ img { max-width: 100%; height: auto; display: block; }
   .ecosystem-layout { grid-template-columns: 1fr; }
   .act-mechanics    { grid-template-columns: 1fr; }
   .setup-robot { grid-template-columns: 1fr; }
+  .setup-robot-figs { grid-template-columns: 1fr; }
   .exp-content { grid-template-columns: 1fr; }
   .yolo-approach   { grid-template-columns: 1fr; }
   .yolo-train-grid { grid-template-columns: 1fr; }

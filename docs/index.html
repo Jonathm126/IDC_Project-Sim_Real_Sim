@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=2" />
+  <link rel="stylesheet" href="assets/css/style.css?v=3" />
 </head>
 <body>
 
@@ -136,33 +136,35 @@
   <div class="container">
     <h2 class="section-title">Experimental Setup</h2>
 
-    <!-- Robot -->
-    <div class="setup-robot">
-      <div class="setup-robot-img">
+    <!-- Robot: two images side-by-side, spec list below -->
+    <div class="setup-robot-figs">
+      <div>
         <div class="fig-placeholder" data-fig="so101-infer-setup">
           <span class="fig-placeholder-label">SO-101 Robot Setup</span>
           <span class="fig-placeholder-hint">Copy <code>so101-infer-setup.png</code> → <code>docs/assets/img/</code></span>
         </div>
-        <p class="fig-caption">SO-101 leader–follower teleoperation setup (left) and inference setup (right).</p>
-        <div class="fig-placeholder fig-placeholder-sm" data-fig="so101-kinematics" style="margin-top:16px">
+        <p class="fig-caption">Teleoperation &amp; inference setup.</p>
+      </div>
+      <div>
+        <div class="fig-placeholder" data-fig="so101-kinematics">
           <span class="fig-placeholder-label">SO-101 joint kinematics</span>
           <span class="fig-placeholder-hint">Copy <code>so101-kinematics.png</code> → <code>docs/assets/img/</code></span>
         </div>
-        <p class="fig-caption">SO-101 joint configuration and degrees of freedom.</p>
+        <p class="fig-caption">Joint configuration and degrees of freedom.</p>
       </div>
-      <div class="setup-robot-specs">
-        <h3>Robotic System</h3>
-        <ul class="spec-list">
-          <li><span class="spec-key">Platform</span><span class="spec-val">SO-101 6-DoF serial arm</span></li>
-          <li><span class="spec-key">Actuation</span><span class="spec-val">Feetech STS3215 servos</span></li>
-          <li><span class="spec-key">Cameras</span><span class="spec-val">Top-view + wrist cam, 640×480 RGB, 30 Hz</span></li>
-          <li><span class="spec-key">Data collection</span><span class="spec-val">Leader-follower teleoperation at 30 Hz</span></li>
-          <li><span class="spec-key">Framework</span><span class="spec-val">LeRobot (HuggingFace)</span></li>
-          <li><span class="spec-key">Hardware</span><span class="spec-val">RTX 3060 Ti GPU for training</span></li>
-          <li><span class="spec-key">Observation</span><span class="spec-val">6 joint angles + 2 camera frames</span></li>
-          <li><span class="spec-key">Action space</span><span class="spec-val">6 joint angle targets</span></li>
-        </ul>
-      </div>
+    </div>
+    <div class="setup-robot-specs" style="margin-top:24px">
+      <h3>Robotic System</h3>
+      <ul class="spec-list">
+        <li><span class="spec-key">Platform</span><span class="spec-val">SO-101 6-DoF serial arm</span></li>
+        <li><span class="spec-key">Actuation</span><span class="spec-val">Feetech STS3215 servos</span></li>
+        <li><span class="spec-key">Cameras</span><span class="spec-val">Top-view + wrist cam, 640×480 RGB, 30 Hz</span></li>
+        <li><span class="spec-key">Data collection</span><span class="spec-val">Leader-follower teleoperation at 30 Hz</span></li>
+        <li><span class="spec-key">Framework</span><span class="spec-val">LeRobot (HuggingFace)</span></li>
+        <li><span class="spec-key">Hardware</span><span class="spec-val">RTX 3060 Ti GPU for training</span></li>
+        <li><span class="spec-key">Observation</span><span class="spec-val">6 joint angles + 2 camera frames</span></li>
+        <li><span class="spec-key">Action space</span><span class="spec-val">6 joint angle targets</span></li>
+      </ul>
     </div>
 
     <!-- Tasks -->
