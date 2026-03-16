@@ -62,7 +62,7 @@
   <div class="container narrow">
     <h2 class="section-title">Abstract</h2>
     <div class="abstract-card">
-      <p>We evaluate the <strong>Action Chunking Transformer (ACT)</strong> on two real pick-and-place tasks with a SO-101 arm, ablating dataset size, model depth, chunk size, and temporal ensembling.</p>
+      <p>We evaluate the <strong>Action Chunking Transformer (ACT)</strong> — an imitation learning policy that predicts short action sequences (chunks) from robot demonstrations using a CVAE-Transformer architecture — on two real pick-and-place tasks with a SO-101 arm, ablating dataset size, model depth, chunk size, and temporal ensembling.</p>
       <p><strong>Data quantity dominates:</strong> doubling demos (48→96) lifts car success from 58% to 85%. Larger models hurt without more data. ACT fails sharply on out-of-distribution positions — and training longer doesn't fix it.</p>
       <p>We extend ACT with <strong>YOLO state augmentation</strong> — injecting detected object pose (u, v, θ) into the state vector — but the augmented policy underperforms baselines on both tasks. Failure modes are concrete and addressable.</p>
     </div>
@@ -75,62 +75,14 @@
     <h2 class="section-title">ACT in Context</h2>
     <p class="section-subtitle">Where the Action Chunking Transformer sits — and how it works.</p>
 
-    <!-- Row 1: Venn + intro -->
-    <div class="ecosystem-layout">
-
-      <!-- Left: Policy comparison table -->
-      <div class="ecosystem-table">
-        <p class="ecosystem-table-label">Policy landscape</p>
-        <table class="policy-table">
-          <thead>
-            <tr>
-              <th>Method</th>
-              <th>Core idea</th>
-              <th>Data</th>
-              <th>Speed</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Behavioral Cloning</td>
-              <td>Direct action regression</td>
-              <td><span class="ptag ptag-green">Low</span></td>
-              <td><span class="ptag ptag-green">Fast</span></td>
-            </tr>
-            <tr class="policy-row-highlight">
-              <td><strong>ACT ✦</strong></td>
-              <td>CVAE + action chunking</td>
-              <td><span class="ptag ptag-green">Low</span></td>
-              <td><span class="ptag ptag-green">Fast</span></td>
-            </tr>
-            <tr>
-              <td>Diffusion Policy</td>
-              <td>Score-matching denoising</td>
-              <td><span class="ptag ptag-yellow">Medium</span></td>
-              <td><span class="ptag ptag-red">Slow</span></td>
-            </tr>
-            <tr>
-              <td>VLAs</td>
-              <td>Vision-language backbone</td>
-              <td><span class="ptag ptag-red">Very high</span></td>
-              <td><span class="ptag ptag-red">Very slow</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Right: what is ACT -->
-      <div class="ecosystem-right">
-        <div class="act-blurb">
-          <p><strong>ACT</strong> <em>(Action Chunking with Transformers, <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al. 2023</a>)</em> is an imitation learning policy for robot manipulation. It is trained purely on human teleoperation demonstrations — no reward function, no simulation — and runs directly on the robot at inference time.</p>
-          <p>ACT occupies a <strong>practical sweet spot</strong> in the policy landscape: more expressive than plain behavioral cloning (it models the full action distribution via a generative model), yet compact enough to train from tens of demonstrations on a single GPU. This makes it the go-to baseline for low-resource real-robot settings.</p>
-          <p>In this work ACT is trained and evaluated using <strong><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot</a></strong> — HuggingFace's open-source robotics framework — on a SO-101 6-DoF arm.</p>
-          <div class="act-links" style="margin-top:1rem">
-            <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="badge badge-outline">ACT Paper ↗</a>
-            <a href="https://tonyzhaozh.github.io/aloha/" target="_blank" rel="noopener" class="badge badge-outline">Project Page ↗</a>
-            <a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener" class="badge badge-outline">LeRobot ↗</a>
-          </div>
-        </div>
+    <!-- Intro blurb -->
+    <div class="act-blurb" style="max-width:760px;margin-bottom:2rem">
+      <p><strong>ACT</strong> <em>(Action Chunking with Transformers, <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al. 2023</a>)</em> is an imitation learning policy for robot manipulation. Trained purely on human teleoperation demonstrations — no reward function, no simulation — it predicts short sequences of joint-angle targets (action chunks) directly from camera images and proprioception, and executes them on the robot.</p>
+      <p>It is compact enough to train from tens of demonstrations on a single GPU, making it the go-to baseline for low-resource real-robot settings. In this work ACT is trained and evaluated using <strong><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot</a></strong> on a SO-101 6-DoF arm.</p>
+      <div class="act-links" style="margin-top:1rem">
+        <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="badge badge-outline">ACT Paper ↗</a>
+        <a href="https://tonyzhaozh.github.io/aloha/" target="_blank" rel="noopener" class="badge badge-outline">Project Page ↗</a>
+        <a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener" class="badge badge-outline">LeRobot ↗</a>
       </div>
     </div>
 
@@ -172,7 +124,7 @@
           <span class="fig-placeholder-hint">Copy <code>chunking+te.png</code> → <code>docs/assets/img/</code></span>
         </div>
         <p class="fig-credit">Figure: Zhao et al. (2023)</p>
-        <p class="act-mech-text">Chunk boundaries can cause visible jitter as the robot switches from one plan to the next. Temporal ensembling mitigates this: at every timestep, overlapping chunks are queried and their predictions are blended with <strong>exponentially decaying weights</strong> — older chunks contribute less. The final action is <em>aₜ = Σ λⁱ â<sub>t−i</sub></em> with λ = 0.01. This yields smoother, more confident execution at the cost of a small reactivity lag.</p>
+        <p class="act-mech-text">At every timestep, overlapping chunks are queried and their predictions are blended with <strong>exponentially decaying weights</strong> — older chunks contribute less. The final action is <em>aₜ = Σ λⁱ â<sub>t−i</sub></em> with λ = 0.01, yielding smoother execution.</p>
       </div>
 
     </div>
