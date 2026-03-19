@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evaluation and Extension of ACT for Robotics</title>
+  <meta name="description" content="Systematic evaluation of the Action Chunking Transformer policy on a real-world robot, with a YOLO state-augmentation extension." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css?v=4" />
+</head>
+<body>
+
+<!-- ── NAV ───────────────────────────────────────────────────────── -->
+<nav id="topnav">
+  <div class="nav-inner">
+    <span class="nav-logo">ACT · Robotics</span>
+    <ul class="nav-links">
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#background">Background</a></li>
+      <li><a href="#act">ACT Policy</a></li>
+      <li><a href="#setup">Setup</a></li>
+      <li><a href="#experiments">Experiments</a></li>
+      <li><a href="#yolo">YOLO Ext.</a></li>
+      <li><a href="#resources">Resources</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────────── -->
+<header id="hero">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="container hero-content">
+    <p class="hero-venue">MSc Final Project · Machine Learning &amp; Data Science</p>
+    <h1>Evaluation and Extension of the<br>Action Chunking Transformer</h1>
+    <p class="hero-author">Jonathan Mendelson &nbsp;·&nbsp; January 2026</p>
+    <div class="hero-badges">
+      <a href="https://github.com/Jonathm126/IDC_Project-Sim_Real_Sim" target="_blank" rel="noopener" class="badge badge-github">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="https://huggingface.co/jonathm126" target="_blank" rel="noopener" class="badge badge-hf">
+        <svg viewBox="0 0 95 88" fill="currentColor"><path d="M47.2 4.7c-11.8 0-22.4 4.8-30.1 12.5C9.4 24.9 4.7 35.5 4.7 47.3c0 11.8 4.8 22.4 12.5 30.1C24.9 85.1 35.5 89.8 47.3 89.8c11.8 0 22.4-4.8 30.1-12.5 7.7-7.7 12.4-18.3 12.4-30.1 0-11.8-4.8-22.4-12.5-30.1C69.6 9.4 59 4.7 47.2 4.7zm-9.4 31.5c3.5 0 6.3 2.8 6.3 6.3s-2.8 6.3-6.3 6.3-6.3-2.8-6.3-6.3 2.8-6.3 6.3-6.3zm18.8 0c3.5 0 6.3 2.8 6.3 6.3s-2.8 6.3-6.3 6.3-6.3-2.8-6.3-6.3 2.8-6.3 6.3-6.3zm-9.4 18.8c7.8 0 14.1 4.2 14.1 9.4H32.9c0-5.2 6.3-9.4 14.3-9.4z"/></svg>
+        Hugging Face
+      </a>
+    </div>
+    <p class="hero-tagline">Systematic ablations of ACT on a real robot arm — dataset size, model depth, action chunking — plus a YOLO state-augmentation extension that exposes the limits of small-data IL.</p>
+  </div>
+  <div class="hero-scroll-hint" aria-hidden="true">
+    <span>scroll</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+</header>
+
+<!-- ── ABSTRACT ───────────────────────────────────────────────────── -->
+<section id="abstract" class="section section-white">
+  <div class="container narrow">
+    <h2 class="section-title">Abstract</h2>
+    <div class="abstract-card">
+      <p>We evaluate the <strong>Action Chunking Transformer (ACT)</strong> — an imitation learning policy that predicts short action sequences (chunks) from robot demonstrations using a CVAE-Transformer architecture — on two real pick-and-place tasks with a SO-101 arm, ablating dataset size, model depth, chunk size, and temporal ensembling.</p>
+      <p><strong>Data quantity dominates:</strong> doubling demos (48→96) lifts car success from 58% to 85%. Larger models hurt without more data. ACT fails sharply on out-of-distribution positions — and training longer doesn't fix it.</p>
+      <p>We extend ACT with <strong>YOLO state augmentation</strong> — injecting detected object pose (u, v, θ) into the state vector — but the augmented policy underperforms baselines on both tasks. Failure modes are concrete and addressable.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── ACT IN CONTEXT ──────────────────────────────────────────────── -->
+<section id="act" class="section section-gray">
+  <div class="container">
+    <h2 class="section-title">ACT in Context</h2>
+    <p class="section-subtitle">Where the Action Chunking Transformer sits — and how it works.</p>
+
+    <!-- Intro blurb -->
+    <div class="act-blurb" style="max-width:760px;margin-bottom:2rem">
+      <p><strong>ACT</strong> <em>(Action Chunking with Transformers, <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al. 2023</a>)</em> is an imitation learning policy for robot manipulation. Trained purely on human teleoperation demonstrations — no reward function, no simulation — it predicts short sequences of joint-angle targets (action chunks) directly from camera images and proprioception, and executes them on the robot.</p>
+      <p>It is compact enough to train from tens of demonstrations on a single GPU, making it the go-to baseline for low-resource real-robot settings. In this work ACT is trained and evaluated using <strong><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot</a></strong> on a SO-101 6-DoF arm.</p>
+      <div class="act-links" style="margin-top:1rem">
+        <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="badge badge-outline">ACT Paper ↗</a>
+        <a href="https://tonyzhaozh.github.io/aloha/" target="_blank" rel="noopener" class="badge badge-outline">Project Page ↗</a>
+        <a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener" class="badge badge-outline">LeRobot ↗</a>
+      </div>
+    </div>
+
+    <!-- Row 2: How it works — 3 mechanics cards -->
+    <h3 class="subsection-title" style="margin-top:2.5rem">How It Works</h3>
+    <div class="act-mechanics">
+
+      <!-- 1. Architecture -->
+      <div class="card act-mech-card">
+        <div class="act-mech-header">
+          <span class="act-mech-num">01</span>
+          <h4>Architecture</h4>
+        </div>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="act-cvae">
+          <span class="fig-placeholder-label">ACT CVAE architecture</span>
+          <span class="fig-placeholder-hint">Copy <code>act-cvae.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="fig-credit">Figure: Zhao et al. (2023)</p>
+        <p class="act-mech-text">A <strong>Conditional VAE encoder</strong> (active only during training) takes the full demonstration trajectory and compresses it into a latent style variable <em>z</em> that captures movement intent. A <strong>Transformer decoder</strong> then attends to the current observations — 6 joint angles plus RGB frames from two cameras processed by a ResNet-18 backbone — and, conditioned on <em>z</em>, autoregressively decodes a sequence of <em>K</em> target joint angles in one forward pass. At inference, <em>z</em> is sampled from the learned prior <em>N(0, I)</em>.</p>
+      </div>
+
+      <!-- 2. Action Chunking -->
+      <div class="card act-mech-card">
+        <div class="act-mech-header">
+          <span class="act-mech-num">02</span>
+          <h4>Action Chunking</h4>
+        </div>
+        <p class="act-mech-text">Instead of predicting one action at a time, ACT predicts a <strong>chunk of K consecutive actions</strong> per forward pass. Step-by-step behavioral cloning accumulates errors — a small mistake in one action corrupts all that follow. Chunking breaks this dependency: the policy "commits" to a short plan, dramatically reducing compounding error. The chunk size K is a key hyperparameter; in this work we ablate K ∈ {25, 50, 100, 150}.</p>
+      </div>
+
+      <!-- 3. Temporal Ensembling -->
+      <div class="card act-mech-card">
+        <div class="act-mech-header">
+          <span class="act-mech-num">03</span>
+          <h4>Temporal Ensembling</h4>
+        </div>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="chunking+te">
+          <span class="fig-placeholder-label">Temporal ensembling diagram</span>
+          <span class="fig-placeholder-hint">Copy <code>chunking+te.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="fig-credit">Figure: Zhao et al. (2023)</p>
+        <p class="act-mech-text">At every timestep, overlapping chunks are queried and their predictions are blended with <strong>exponentially decaying weights</strong> — older chunks contribute less. The final action is <em>aₜ = Σ λⁱ â<sub>t−i</sub></em> with λ = 0.01, yielding smoother execution.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── EXPERIMENTAL SETUP ─────────────────────────────────────────── -->
+<section id="setup" class="section section-gray">
+  <div class="container">
+    <h2 class="section-title">Experimental Setup</h2>
+
+    <!-- Robot: two images side-by-side, spec list below -->
+    <div class="setup-robot-figs">
+      <div>
+        <div class="fig-placeholder" data-fig="so101-infer-setup">
+          <span class="fig-placeholder-label">SO-101 Robot Setup</span>
+          <span class="fig-placeholder-hint">Copy <code>so101-infer-setup.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="fig-caption">Teleoperation &amp; inference setup.</p>
+      </div>
+      <div>
+        <div class="fig-placeholder" data-fig="so101-kinematics">
+          <span class="fig-placeholder-label">SO-101 joint kinematics</span>
+          <span class="fig-placeholder-hint">Copy <code>so101-kinematics.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="fig-caption">Joint configuration and degrees of freedom.</p>
+      </div>
+    </div>
+    <div class="setup-robot-specs" style="margin-top:24px">
+      <h3>Robotic System</h3>
+      <ul class="spec-list">
+        <li><span class="spec-key">Platform</span><span class="spec-val">SO-101 6-DoF serial arm</span></li>
+        <li><span class="spec-key">Actuation</span><span class="spec-val">Feetech STS3215 servos</span></li>
+        <li><span class="spec-key">Cameras</span><span class="spec-val">Top-view + wrist cam, 640×480 RGB, 30 Hz</span></li>
+        <li><span class="spec-key">Data collection</span><span class="spec-val">Leader-follower teleoperation at 30 Hz</span></li>
+        <li><span class="spec-key">Framework</span><span class="spec-val">LeRobot (HuggingFace)</span></li>
+        <li><span class="spec-key">Hardware</span><span class="spec-val">RTX 3060 Ti GPU for training</span></li>
+        <li><span class="spec-key">Observation</span><span class="spec-val">6 joint angles + 2 camera frames</span></li>
+        <li><span class="spec-key">Action space</span><span class="spec-val">6 joint angle targets</span></li>
+      </ul>
+    </div>
+
+    <!-- Tasks -->
+    <h3 class="subsection-title">Tasks</h3>
+    <div class="card-grid card-grid-2">
+
+      <div class="card task-card">
+        <div class="task-header">
+          <div class="task-badge task-badge-blue">Task 1</div>
+          <h4>Car Pick-and-Place</h4>
+        </div>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="task-car">
+          <span class="fig-placeholder-label">Car task — top view</span>
+          <span class="fig-placeholder-hint">Copy <code>task-car.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="fig-caption">Top view: 5 source positions, 4 orientations, 3 target bins.</p>
+        <ul class="task-specs">
+          <li>Grasp a small toy car and place it inside a target square</li>
+          <li>Car can <em>roll</em> if mishandled — requires stable grasp</li>
+          <li>5 source positions × 4 orientations × 3 target bins</li>
+          <li>Score: <span class="badge-score success">1</span> placed · <span class="badge-score partial">0.5</span> lifted · <span class="badge-score fail">0</span> failed</li>
+          <li>Evaluation: 24 rollouts per model</li>
+        </ul>
+        <div class="video-placeholder video-placeholder-sm" data-video="car_success_k100.mp4" style="margin-top:12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Successful car pick-and-place rollout</span>
+        </div>
+      </div>
+
+      <div class="card task-card">
+        <div class="task-header">
+          <div class="task-badge task-badge-orange">Task 2</div>
+          <h4>Pick Pen</h4>
+        </div>
+        <div class="fig-placeholder fig-placeholder-sm" data-fig="task-pen">
+          <span class="fig-placeholder-label">Pick Pen — top view</span>
+          <span class="fig-placeholder-hint">Copy <code>task-pen.png</code> → <code>docs/assets/img/</code></span>
+        </div>
+        <p class="fig-caption">Top view: 5 source positions, distractor pens, single target cup.</p>
+        <ul class="task-specs">
+          <li>Pick the <em>red pen</em> from among colored distractors and insert into a cup</li>
+          <li>Requires precise grasping and correct object identification</li>
+          <li>5 source positions × 4 orientations; random distractor placement</li>
+          <li>Score: <span class="badge-score success">1</span> inserted · <span class="badge-score partial">0.5</span> lifted · <span class="badge-score fail">0</span> failed</li>
+          <li>Evaluation: 20 rollouts per model</li>
+        </ul>
+        <div class="video-placeholder video-placeholder-sm" data-video="pen_success.mp4" style="margin-top:12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>Successful pick-pen rollout</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Dataset stats -->
+    <h3 class="subsection-title">Dataset Statistics</h3>
+    <div class="table-wrap table-center">
+      <table class="data-table">
+        <thead>
+          <tr><th>Task</th><th># Demonstrations</th><th>Total Frames</th><th>Avg. Duration (s)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Car pick-and-place</td><td>98</td><td>67,279</td><td>22.9</td></tr>
+          <tr><td>Pick pen</td><td>76</td><td>51,908</td><td>22.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── EXPERIMENTS ────────────────────────────────────────────────── -->
+<section id="experiments" class="section section-white">
+  <div class="container">
+    <h2 class="section-title">Parameter Ablations</h2>
+    <p class="section-subtitle">We vary one factor at a time across four experiments, evaluating directly on the physical robot.</p>
+
+    <!-- 6a Dataset Size -->
+    <div class="experiment-block" id="exp-dataset">
+      <div class="exp-header">
+        <span class="exp-number">01</span>
+        <div>
+          <h3>Effect of Dataset Size</h3>
+          <p class="exp-rationale">How much does the number of demonstrations matter? ACT is an offline IL method — it memorizes the training distribution. We train on 25%, 50%, and 100% of available episodes per task.</p>
+        </div>
+      </div>
+
+      <div class="exp-content">
+        <div class="exp-chart-wrap">
+          <canvas id="chartDatasetSize" height="260"></canvas>
+        </div>
+        <div class="exp-side">
+          <table class="data-table data-table-mini">
+            <thead><tr><th>Task</th><th>Fraction</th><th>Success</th></tr></thead>
+            <tbody>
+              <tr class="row-car"><td>Car</td><td>25%</td><td>35.4%</td></tr>
+              <tr class="row-car"><td>Car</td><td>50%</td><td>58.3%</td></tr>
+              <tr class="row-car"><td>Car</td><td>100%</td><td><strong>85.4%</strong></td></tr>
+              <tr class="row-pen"><td>Pen</td><td>25%</td><td>10.0%</td></tr>
+              <tr class="row-pen"><td>Pen</td><td>50%</td><td>50.0%</td></tr>
+              <tr class="row-pen"><td>Pen</td><td>100%</td><td><strong>55.0%</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="finding-box">
+        <strong>Key finding:</strong> Doubling the car dataset from 48 to 96 episodes raises success from 58% → 85%. Data quantity is the dominant performance driver — the gains are superlinear, not incremental.
+      </div>
+    </div>
+
+    <div class="exp-divider"></div>
+
+    <!-- 6b Model Size -->
+    <div class="experiment-block" id="exp-model">
+      <div class="exp-header">
+        <span class="exp-number">02</span>
+        <div>
+          <h3>Effect of Model Size</h3>
+          <p class="exp-rationale">We vary Transformer depth across Small (4,1), Medium (6,2), and Large (8,4) encoder/decoder layers while holding the dataset fixed. Larger models need more VRAM and reduce batch size.</p>
+        </div>
+      </div>
+
+      <div class="exp-content">
+        <div class="exp-chart-wrap">
+          <canvas id="chartModelSize" height="260"></canvas>
+        </div>
+        <div class="exp-side">
+          <div class="mini-table">
+            <table class="data-table data-table-mini">
+              <thead><tr><th>Size</th><th>Params</th><th>VRAM</th></tr></thead>
+              <tbody>
+                <tr><td>Small (4,1)</td><td>43M</td><td>0.9 GB</td></tr>
+                <tr><td>Medium (6,2)</td><td>68.8M</td><td>1.4 GB</td></tr>
+                <tr><td>Large (8,4)</td><td>103M</td><td>2.1 GB</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="finding-box">
+        <strong>Key finding:</strong> Medium (6,2) improves over Small on both tasks, but Large (8,4) collapses sharply (Car: 0.625→0.354; Pen: 0.600→0.100). The additional model capacity is not supported by the small dataset — the same pattern as any ML scaling law.
+      </div>
+    </div>
+
+    <div class="exp-divider"></div>
+
+    <!-- 6c Action Chunking -->
+    <div class="experiment-block" id="exp-chunking">
+      <div class="exp-header">
+        <span class="exp-number">03</span>
+        <div>
+          <h3>Action Chunk Size &amp; Temporal Ensembling</h3>
+          <p class="exp-rationale">We sweep chunk size K ∈ {25, 50, 100, 150} with no TE, and compare the best against a temporal-ensembling (TE) policy with λ = 0.01. All runs use the full dataset per task.</p>
+        </div>
+      </div>
+
+      <div class="exp-content">
+        <div class="exp-chart-wrap">
+          <canvas id="chartChunking" height="280"></canvas>
+        </div>
+        <div class="exp-chart-wrap">
+          <canvas id="chartTE" height="280"></canvas>
+        </div>
+      </div>
+
+      <!-- Video pair -->
+      <div class="video-pair">
+        <div class="video-card">
+          <div class="video-placeholder" data-video="fail_oscillation.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>K=25 — Oscillation failure</span>
+          </div>
+          <p class="fig-caption">K=25: insufficient look-ahead → robot oscillates without progress.</p>
+        </div>
+        <div class="video-card">
+          <div class="video-placeholder" data-video="car_success_k100.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>K=100 — Successful rollout</span>
+          </div>
+          <p class="fig-caption">K=100: optimal chunk size for both tasks, consistent with ACT paper recommendation.</p>
+        </div>
+      </div>
+
+      <div class="finding-box">
+        <strong>Key finding:</strong> K=100 is optimal for car; temporal ensembling performs best on pen but introduces a grasp-failure mode by averaging "open/close" commands. Both parameters require per-task tuning.
+      </div>
+    </div>
+
+    <div class="exp-divider"></div>
+
+    <!-- 6d Distribution Shift -->
+    <div class="experiment-block" id="exp-ood">
+      <div class="exp-header">
+        <span class="exp-number">04</span>
+        <div>
+          <h3>Distribution Shift: In-Sample vs. Out-of-Sample</h3>
+          <p class="exp-rationale">We re-evaluate the 96-episode car model on poses <em>never seen during training</em> (objects placed between discrete training positions, or at diagonal orientations). We also compare 50k and 100k checkpoints to test whether overfitting causes the OOD failure.</p>
+        </div>
+      </div>
+
+      <div class="exp-content">
+        <div class="exp-chart-wrap" style="max-width:480px">
+          <canvas id="chartOOD" height="260"></canvas>
+        </div>
+        <div class="exp-side">
+          <div class="fig-placeholder" data-fig="in-out-sample-eval">
+            <span class="fig-placeholder-label">In-sample vs. out-of-sample positions</span>
+            <span class="fig-placeholder-hint">Copy <code>in-out-sample-eval.png</code> → <code>docs/assets/img/</code></span>
+          </div>
+          <p class="fig-caption">Blue: training poses. Red: OOD evaluation poses (between positions or diagonal orientations).</p>
+        </div>
+      </div>
+
+      <!-- OOD video -->
+      <div class="video-pair">
+        <div class="video-card">
+          <div class="video-placeholder" data-video="oos_failure_car.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>OOD failure — car task</span>
+          </div>
+          <p class="fig-caption">Out-of-sample pose: policy fails to adapt despite converging on in-sample configurations.</p>
+        </div>
+      </div>
+
+      <div class="finding-box">
+        <strong>Key finding:</strong> In-sample success improves from 60% → 85% with more training, but out-of-sample performance stays at 19% for both checkpoints. <em>This is not classic overfitting</em> — the policy simply has no coverage of unseen states.
+      </div>
+    </div>
+
+    <div class="exp-divider"></div>
+
+    <!-- 6e Failure Modes -->
+    <div class="experiment-block" id="exp-failures">
+      <div class="exp-header">
+        <span class="exp-number">05</span>
+        <div>
+          <h3>Failure Modes</h3>
+          <p class="exp-rationale">Five distinct failure modes were observed across all evaluation rollouts. Most share a common root: the policy encounters states absent from the training distribution.</p>
+        </div>
+      </div>
+
+      <div class="failure-grid">
+
+        <div class="failure-card">
+          <h4>Mode Collapse</h4>
+          <p>Robot reaches an intermediate pose and freezes — stuck between two motion modes from the training data.</p>
+          <div class="video-placeholder" data-video="fail_mode_collapse.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>Video</span>
+          </div>
+        </div>
+
+        <div class="failure-card">
+          <h4>Oscillation Loop</h4>
+          <p>Robot shakes/vibrates repeatedly around a fixed position without making progress toward the goal.</p>
+          <div class="video-placeholder" data-video="fail_oscillation.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>Video</span>
+          </div>
+        </div>
+
+        <div class="failure-card">
+          <h4>Action Drift</h4>
+          <p>Robot slowly wanders off-course over the episode — cumulative error in long action horizons.</p>
+          <div class="video-placeholder" data-video="fail_drift.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>Video</span>
+          </div>
+        </div>
+
+        <div class="failure-card">
+          <h4>Grasp Failure</h4>
+          <p>Robot misses the object, applies wrong force, or drops it after grasping. Common with temporal ensembling.</p>
+          <div class="video-placeholder" data-video="fail_grasp.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>Video</span>
+          </div>
+        </div>
+
+        <div class="failure-card">
+          <h4>Recovery Failure</h4>
+          <p>After making an error, the robot cannot self-correct — no recovery demonstrations were in the training set.</p>
+          <div class="video-placeholder" data-video="fail_recovery.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>Video</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Summary table -->
+    <div class="summary-table-wrap">
+      <h3 class="subsection-title">Experiment Summary</h3>
+      <div class="table-wrap">
+        <table class="data-table summary-table">
+          <thead>
+            <tr><th>Experiment</th><th>Configuration</th><th>Car</th><th>Pen</th></tr>
+          </thead>
+          <tbody>
+            <tr><td rowspan="3">Dataset Size</td><td>25–26 ep (small)</td><td>0.354</td><td>0.100</td></tr>
+            <tr><td>48–50 ep (medium)</td><td>0.583</td><td>0.500</td></tr>
+            <tr class="row-best"><td>75–96 ep (full)</td><td><strong>0.854</strong></td><td>0.550</td></tr>
+            <tr><td rowspan="3">Model Size</td><td>Small (4,1)</td><td>0.583</td><td>0.500</td></tr>
+            <tr class="row-best"><td>Medium (6,2)</td><td><strong>0.625</strong></td><td><strong>0.600</strong></td></tr>
+            <tr><td>Large (8,4)</td><td>0.354</td><td>0.100</td></tr>
+            <tr><td rowspan="5">Action Chunking</td><td>K=25, no TE</td><td>0.500</td><td>0.325</td></tr>
+            <tr><td>K=50, no TE</td><td>0.708</td><td>0.550</td></tr>
+            <tr class="row-best"><td>K=100, no TE</td><td><strong>0.854</strong></td><td>0.600</td></tr>
+            <tr><td>K=150, no TE</td><td>0.708</td><td>0.225</td></tr>
+            <tr><td>K=1, TE (λ=0.01)</td><td>0.688</td><td><strong>0.625</strong></td></tr>
+            <tr><td rowspan="2">Distribution Shift</td><td>In-sample (100k steps)</td><td>0.854</td><td>—</td></tr>
+            <tr><td>Out-of-sample (100k steps)</td><td>0.194</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── YOLO EXTENSION ─────────────────────────────────────────────── -->
+<section id="yolo" class="section section-gray">
+  <div class="container">
+    <h2 class="section-title">YOLO State Augmentation</h2>
+    <p class="section-subtitle">Can we improve out-of-distribution generalization without collecting more data?</p>
+
+    <!-- Motivation -->
+    <div class="motivation-block">
+      <div class="motivation-stat">
+        <span class="stat-value">85.4%</span>
+        <span class="stat-label">In-sample (car)</span>
+      </div>
+      <div class="motivation-arrow">→</div>
+      <div class="motivation-stat motivation-stat-red">
+        <span class="stat-value">19.4%</span>
+        <span class="stat-label">Out-of-sample (car)</span>
+      </div>
+      <div class="motivation-text">
+        <p>The best ACT model achieves 85% in-sample but collapses to 19% on unseen object positions — suggesting the policy memorizes the training distribution rather than understanding the task geometrically. We ask: can feeding the robot an explicit, symbolic description of where the object <em>is</em> close this gap without collecting more demonstrations?</p>
+      </div>
+    </div>
+
+    <!-- Approach -->
+    <h3 class="subsection-title">Approach</h3>
+    <div class="yolo-approach">
+      <div class="yolo-diagram-wrap">
+        <svg viewBox="0 0 875 360" style="width:100%;display:block;margin:8px auto 4px" role="img" aria-label="YOLO-augmented ACT architecture">
+          <defs>
+            <marker id="ya" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
+            </marker>
+          </defs>
+          <!-- Dashed highlight: new components -->
+          <rect x="182" y="44" width="348" height="126" rx="6" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6,3"/>
+          <text x="356" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-style="italic" fill="#b45309">New: YOLO state augmentation</text>
+          <!-- RGB Frames (blue) -->
+          <rect x="20" y="195" width="120" height="52" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#1e3a5f">
+            <tspan x="80" y="215">RGB</tspan><tspan x="80" dy="15">Frames</tspan>
+          </text>
+          <!-- YOLOv8 OBB (orange) -->
+          <rect x="200" y="81" width="120" height="52" rx="6" fill="#fed7aa" stroke="#fb923c" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#7c2d12">
+            <tspan x="260" y="101">YOLOv8</tspan><tspan x="260" dy="15">OBB</tspan>
+          </text>
+          <!-- Source & Target (orange) -->
+          <rect x="380" y="81" width="120" height="52" rx="6" fill="#fed7aa" stroke="#fb923c" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#7c2d12">
+            <tspan x="440" y="100">Source &amp; Target</tspan><tspan x="440" dy="14">(u, v, θ)</tspan>
+          </text>
+          <!-- Joint State (green) -->
+          <rect x="200" y="289" width="120" height="52" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#14532d">
+            <tspan x="260" y="309">Joint State</tspan><tspan x="260" dy="15">q_t</tspan>
+          </text>
+          <!-- Extended Obs (green) -->
+          <rect x="380" y="195" width="120" height="52" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#14532d">
+            <tspan x="440" y="215">Extended Obs.</tspan><tspan x="440" dy="14">o_t^aug</tspan>
+          </text>
+          <!-- ACT Policy (red) -->
+          <rect x="560" y="195" width="120" height="52" rx="6" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#7f1d1d">
+            <tspan x="620" y="215">ACT</tspan><tspan x="620" dy="15">Policy</tspan>
+          </text>
+          <!-- Action Chunk (gray) -->
+          <rect x="740" y="195" width="120" height="52" rx="6" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#374151">
+            <tspan x="800" y="215">Action Chunk</tspan><tspan x="800" dy="14">â_{t:t+K}</tspan>
+          </text>
+          <!-- Arrows -->
+          <line x1="80" y1="195" x2="200" y2="133" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="140" y1="221" x2="380" y2="221" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="320" y1="107" x2="380" y2="107" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="440" y1="133" x2="440" y2="195" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="320" y1="315" x2="440" y2="247" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="500" y1="221" x2="560" y2="221" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="680" y1="221" x2="740" y2="221" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+        </svg>
+        <p class="fig-caption">Top-camera → YOLOv8-OBB → centroid (u,v,θ) for source and target, appended to the joint-state vector before ACT. The RGB stream feeds into Extended Obs. unchanged.</p>
+      </div>
+      <div class="yolo-approach-text">
+        <p>A fine-tuned YOLOv8s-OBB detector runs on the top camera at every timestep, outputting the oriented bounding-box centroid (u, v) and angle θ for both the source object and the target zone. These six coordinates are concatenated with the 6-DoF joint state to form an augmented observation vector fed to ACT.</p>
+        <p>This sidesteps ResNet entirely for the location signal — the visual encoder still processes the image, but object position is now also provided as clean, low-dimensional state rather than implicit in pixels. The detector is trained automatically from 200 annotated frames per task, with no manual feature engineering.</p>
+      </div>
+    </div>
+
+    <!-- Annotation -->
+    <h3 class="subsection-title">Annotation</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
+      <div class="fig-placeholder" data-fig="yolo-car-annotation">
+        <span class="fig-placeholder-label">Car — OBB annotations</span>
+        <span class="fig-placeholder-hint">Copy <code>yolo-car-annotation.png</code> → <code>docs/assets/img/</code></span>
+      </div>
+      <div class="fig-placeholder" data-fig="yolo-pen-annotation">
+        <span class="fig-placeholder-label">Pen — OBB annotations</span>
+        <span class="fig-placeholder-hint">Copy <code>yolo-pen-annotation.png</code> → <code>docs/assets/img/</code></span>
+      </div>
+    </div>
+    <p class="fig-caption">Oriented bounding boxes on training frames. Two classes per task: <em>source</em> (toy car / red pen) and <em>target</em> (drop zone / cup). Annotations were created with the Roboflow labeling tool and exported in YOLO-OBB format.</p>
+
+    <!-- YOLO Training Results -->
+    <h3 class="subsection-title">YOLO Model Performance</h3>
+    <p style="margin-bottom:12px;color:#4b5563;font-size:.95rem">Both detectors converge within 50 epochs and reach near-perfect metrics on the validation split — detection quality is not a bottleneck for the downstream policy experiment.</p>
+    <div class="table-wrap" style="max-width:520px">
+      <table class="data-table">
+        <thead><tr><th>Task</th><th>mAP50</th><th>mAP50-95</th><th>Precision</th><th>Recall</th></tr></thead>
+        <tbody>
+          <tr><td>Car pick-and-place</td><td>0.995</td><td>0.992</td><td>0.993</td><td>1.000</td></tr>
+          <tr><td>Pick pen</td><td>0.995</td><td>0.972</td><td>0.997</td><td>0.997</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Results -->
+    <h3 class="subsection-title">Results</h3>
+    <div class="exp-content">
+      <div class="exp-chart-wrap">
+        <canvas id="chartYoloResults" height="280"></canvas>
+      </div>
+      <div class="exp-side">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Task</th><th>Model</th><th>Ep.</th><th>In-Sample</th><th>OOS</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="3">Car</td><td>Baseline</td><td>50</td><td>0.583</td><td>—</td></tr>
+              <tr><td>Baseline</td><td>96</td><td>0.854</td><td>0.194</td></tr>
+              <tr><td>YOLO-aug</td><td>50</td><td>0.563</td><td>0.167</td></tr>
+              <tr><td rowspan="2">Pen</td><td>Baseline</td><td>50</td><td>0.500</td><td>—</td></tr>
+              <tr><td>YOLO-aug</td><td>50</td><td>0.175</td><td>0.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="video-pair video-pair-col">
+          <div class="video-card">
+            <div class="video-placeholder" data-video="yolo_car.mp4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+              <span>YOLO-aug car rollout</span>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-placeholder" data-video="yolo_pen.mp4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+              <span>YOLO-aug pen rollout</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="finding-box">
+      <strong>Key finding:</strong> Despite near-perfect detection, augmented policies underperform baselines on both tasks — in-sample success for pen drops from 50% to 17.5%, with zero out-of-sample success. The approach is theoretically sound; the failure modes below are concrete and addressable.
+    </div>
+
+    <!-- Discussion / failure summary -->
+    <h3 class="subsection-title">Failure Analysis</h3>
+    <p style="color:#4b5563;font-size:.95rem;line-height:1.7">Three factors likely explain the degradation: <strong>(1) Detection jitter</strong> — OBB centroids fluctuate between frames and occasional missed detections introduce noisy state; <strong>(2) Redundant signal</strong> — ResNet already encodes the scene, so appending pixel-level coordinates may create conflicting rather than complementary representations; <strong>(3) Curse of dimensionality</strong> — expanding the state vector without a proportional increase in demonstrations thins the joint distribution, echoing the large-model collapse seen in Experiment 2. Proposed mitigations: feature dropout on YOLO inputs during training, ablating the ResNet stream to isolate the coordinate signal, and collecting more diverse demonstrations.</p>
+
+  </div>
+</section>
+
+<!-- ── RESOURCES ──────────────────────────────────────────────────── -->
+<section id="resources" class="section section-white">
+  <div class="container">
+    <h2 class="section-title">Resources</h2>
+    <div class="card-grid card-grid-4">
+
+      <a href="https://github.com/Jonathm126/IDC_Project-Sim_Real_Sim" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        </div>
+        <h4>GitHub</h4>
+        <p>Full codebase: notebooks, custom LeRobot extensions, YOLO pipeline.</p>
+        <span class="resource-link">View Repository ↗</span>
+      </a>
+
+      <a href="https://huggingface.co/jonathm126" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-icon">
+          <svg viewBox="0 0 95 88" fill="currentColor"><path d="M47.2 4.7c-11.8 0-22.4 4.8-30.1 12.5C9.4 24.9 4.7 35.5 4.7 47.3c0 11.8 4.8 22.4 12.5 30.1C24.9 85.1 35.5 89.8 47.3 89.8c11.8 0 22.4-4.8 30.1-12.5 7.7-7.7 12.4-18.3 12.4-30.1 0-11.8-4.8-22.4-12.5-30.1C69.6 9.4 59 4.7 47.2 4.7zm-9.4 31.5c3.5 0 6.3 2.8 6.3 6.3s-2.8 6.3-6.3 6.3-6.3-2.8-6.3-6.3 2.8-6.3 6.3-6.3zm18.8 0c3.5 0 6.3 2.8 6.3 6.3s-2.8 6.3-6.3 6.3-6.3-2.8-6.3-6.3 2.8-6.3 6.3-6.3zm-9.4 18.8c7.8 0 14.1 4.2 14.1 9.4H32.9c0-5.2 6.3-9.4 14.3-9.4z"/></svg>
+        </div>
+        <h4>Hugging Face</h4>
+        <p>All trained models, evaluation datasets, and YOLO detectors.</p>
+        <span class="resource-link">Browse Hub ↗</span>
+      </a>
+
+      <a href="https://huggingface.co/jonathm126" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg>
+        </div>
+        <h4>HF Collections</h4>
+        <p>Models organized by experiment: DS Size · Model Size · Action Chunking · In/OOS.</p>
+        <span class="resource-link">View Collections ↗</span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER / CITATION ─────────────────────────────────────────── -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-citation">
+        <h4>Citation</h4>
+        <div class="bibtex-block">
+          <pre id="bibtex-text">@mastersthesis{mendelson2026act,
+  title     = {Evaluation and Extension of the Action
+               Chunking Transformer Policy for Robotics},
+  author    = {Mendelson, Jonathan},
+  year      = {2026},
+  school    = {Efi Arazi School of Computer Science,
+               Reichman University},
+  note      = {MSc Final Project, MLDS Track}
+}</pre>
+          <button class="copy-btn" onclick="copyBibtex()" title="Copy BibTeX">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+      <div class="footer-ack">
+        <h4>Acknowledgements</h4>
+        <p>Thanks to the <a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot / HuggingFace</a> team for the open-source framework that made this work possible, and to the ACT authors for the foundational architecture.</p>
+        <p class="footer-small">Built with plain HTML/CSS/JS · Hosted on GitHub Pages</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="assets/js/main.js?v=3"></script>
+</body>
+</html>
