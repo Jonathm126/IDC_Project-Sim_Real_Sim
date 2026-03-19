@@ -485,6 +485,9 @@ img { max-width: 100%; height: auto; display: block; }
 .resource-card h4 { font-size: 1rem; font-weight: 700; }
 .resource-card p  { font-size: .85rem; color: var(--text-muted); line-height: 1.55; flex: 1; }
 .resource-link { font-size: .82rem; color: var(--accent); font-weight: 600; }
+.resource-card-muted { cursor: default; }
+.resource-card-muted:hover { box-shadow: var(--shadow-sm); transform: none; border-color: var(--border); }
+.resource-card-muted .resource-icon { color: var(--text-light); }
 
 /* ── Footer ──────────────────────────────────────────────────────── */
 #footer {

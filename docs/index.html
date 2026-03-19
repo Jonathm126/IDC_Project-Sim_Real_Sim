@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=3" />
+  <link rel="stylesheet" href="assets/css/style.css?v=4" />
 </head>
 <body>
 
@@ -36,10 +36,6 @@
     <h1>Evaluation and Extension of the<br>Action Chunking Transformer</h1>
     <p class="hero-author">Jonathan Mendelson &nbsp;·&nbsp; January 2026</p>
     <div class="hero-badges">
-      <a href="#" class="badge badge-paper" id="badge-paper">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Paper
-      </a>
       <a href="https://github.com/Jonathm126/IDC_Project-Sim_Real_Sim" target="_blank" rel="noopener" class="badge badge-github">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
         GitHub
@@ -506,7 +502,7 @@
         <span class="stat-label">Out-of-sample (car)</span>
       </div>
       <div class="motivation-text">
-        <p>The best ACT model drops from <strong>85%</strong> to <strong>19%</strong> on unseen configurations. Collecting more demonstrations is expensive. We ask: can explicit object-location signals close this gap automatically?</p>
+        <p>The best ACT model achieves 85% in-sample but collapses to 19% on unseen object positions — suggesting the policy memorizes the training distribution rather than understanding the task geometrically. We ask: can feeding the robot an explicit, symbolic description of where the object <em>is</em> close this gap without collecting more demonstrations?</p>
       </div>
     </div>
 
@@ -514,103 +510,92 @@
     <h3 class="subsection-title">Approach</h3>
     <div class="yolo-approach">
       <div class="yolo-diagram-wrap">
-        <!-- YOLO Architecture SVG -->
-        <svg viewBox="0 0 580 180" class="arch-svg yolo-svg" role="img" aria-label="YOLO-augmented ACT architecture">
+        <svg viewBox="0 0 875 360" style="width:100%;display:block;margin:8px auto 4px" role="img" aria-label="YOLO-augmented ACT architecture">
           <defs>
-            <marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <marker id="ya" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
               <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
             </marker>
           </defs>
-          <!-- Robot -->
-          <rect x="10" y="55" width="70" height="70" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="45" y="82" text-anchor="middle" class="svg-label" font-weight="600">SO-101</text>
-          <text x="45" y="96" text-anchor="middle" class="svg-label-sm">RGB frames</text>
-          <text x="45" y="108" text-anchor="middle" class="svg-label-sm">Joint state qₜ</text>
-
-          <!-- YOLO box -->
-          <rect x="120" y="20" width="90" height="50" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
-          <text x="165" y="42" text-anchor="middle" class="svg-label" font-weight="600">YOLOv8-OBB</text>
-          <text x="165" y="56" text-anchor="middle" class="svg-label-sm">top-cam only</text>
-          <rect x="120" y="80" width="90" height="40" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
-          <text x="165" y="97" text-anchor="middle" class="svg-label">(u,v,θ) source</text>
-          <text x="165" y="111" text-anchor="middle" class="svg-label-sm">(u,v,θ) target</text>
-
-          <!-- Concat -->
-          <rect x="250" y="55" width="70" height="70" rx="6" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
-          <text x="285" y="82" text-anchor="middle" class="svg-label">Concat</text>
-          <text x="285" y="96" text-anchor="middle" class="svg-label-sm">[q, u,v,θ]</text>
-          <text x="285" y="110" text-anchor="middle" class="svg-label-sm">= o^aug</text>
-          <text x="195" y="145" text-anchor="middle" class="svg-label-sm" fill="#ef4444">↑ NEW</text>
-
-          <!-- ACT -->
-          <rect x="365" y="55" width="80" height="70" rx="8" fill="#fdf2f8" stroke="#a855f7" stroke-width="2"/>
-          <text x="405" y="82" text-anchor="middle" class="svg-label" font-weight="600">ACT</text>
-          <text x="405" y="97" text-anchor="middle" class="svg-label-sm">ResNet-18</text>
-          <text x="405" y="111" text-anchor="middle" class="svg-label-sm">Transformer</text>
-
-          <!-- Output -->
-          <rect x="490" y="70" width="80" height="40" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="530" y="87" text-anchor="middle" class="svg-label" font-weight="600">Action</text>
-          <text x="530" y="101" text-anchor="middle" class="svg-label-sm">â_{t:t+K}</text>
-
+          <!-- Dashed highlight: new components -->
+          <rect x="182" y="44" width="348" height="126" rx="6" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6,3"/>
+          <text x="356" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-style="italic" fill="#b45309">New: YOLO state augmentation</text>
+          <!-- RGB Frames (blue) -->
+          <rect x="20" y="195" width="120" height="52" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#1e3a5f">
+            <tspan x="80" y="215">RGB</tspan><tspan x="80" dy="15">Frames</tspan>
+          </text>
+          <!-- YOLOv8 OBB (orange) -->
+          <rect x="200" y="81" width="120" height="52" rx="6" fill="#fed7aa" stroke="#fb923c" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#7c2d12">
+            <tspan x="260" y="101">YOLOv8</tspan><tspan x="260" dy="15">OBB</tspan>
+          </text>
+          <!-- Source & Target (orange) -->
+          <rect x="380" y="81" width="120" height="52" rx="6" fill="#fed7aa" stroke="#fb923c" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#7c2d12">
+            <tspan x="440" y="100">Source &amp; Target</tspan><tspan x="440" dy="14">(u, v, θ)</tspan>
+          </text>
+          <!-- Joint State (green) -->
+          <rect x="200" y="289" width="120" height="52" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#14532d">
+            <tspan x="260" y="309">Joint State</tspan><tspan x="260" dy="15">q_t</tspan>
+          </text>
+          <!-- Extended Obs (green) -->
+          <rect x="380" y="195" width="120" height="52" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#14532d">
+            <tspan x="440" y="215">Extended Obs.</tspan><tspan x="440" dy="14">o_t^aug</tspan>
+          </text>
+          <!-- ACT Policy (red) -->
+          <rect x="560" y="195" width="120" height="52" rx="6" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#7f1d1d">
+            <tspan x="620" y="215">ACT</tspan><tspan x="620" dy="15">Policy</tspan>
+          </text>
+          <!-- Action Chunk (gray) -->
+          <rect x="740" y="195" width="120" height="52" rx="6" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.5"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#374151">
+            <tspan x="800" y="215">Action Chunk</tspan><tspan x="800" dy="14">â_{t:t+K}</tspan>
+          </text>
           <!-- Arrows -->
-          <line x1="80" y1="80" x2="118" y2="42" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="80" y1="100" x2="248" y2="100" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="210" y1="95" x2="248" y2="95" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="165" y1="70" x2="165" y2="78" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="320" y1="90" x2="363" y2="90" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
-          <line x1="80" y1="120" x2="248" y2="108" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="3,2"/>
-          <line x1="445" y1="90" x2="488" y2="90" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="80" y1="195" x2="200" y2="133" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="140" y1="221" x2="380" y2="221" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="320" y1="107" x2="380" y2="107" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="440" y1="133" x2="440" y2="195" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="320" y1="315" x2="440" y2="247" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="500" y1="221" x2="560" y2="221" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
+          <line x1="680" y1="221" x2="740" y2="221" stroke="#6b7280" stroke-width="1.5" marker-end="url(#ya)"/>
         </svg>
-        <p class="fig-caption">YOLO-augmented ACT: OBB centroid coordinates (u,v,θ) from the top camera are appended to the joint state, forming an extended observation fed to ACT. Dashed line = standard RGB path unchanged.</p>
+        <p class="fig-caption">Top-camera → YOLOv8-OBB → centroid (u,v,θ) for source and target, appended to the joint-state vector before ACT. The RGB stream feeds into Extended Obs. unchanged.</p>
       </div>
       <div class="yolo-approach-text">
-        <p>Inspired by visual prompting work that overlaid bounding boxes on ACT's image input, we extend this idea in two ways: (1) inject object locations into the <em>state vector</em> rather than the image, bypassing ResNet for this signal; (2) replace human annotation with an automated YOLOv8-OBB detector.</p>
-        <p>A dedicated YOLOv8s-OBB model is fine-tuned on 200 annotated frames per task. At inference, it runs on the top camera at each timestep and appends detected source/target centroids to the joint-state vector before ACT.</p>
+        <p>A fine-tuned YOLOv8s-OBB detector runs on the top camera at every timestep, outputting the oriented bounding-box centroid (u, v) and angle θ for both the source object and the target zone. These six coordinates are concatenated with the 6-DoF joint state to form an augmented observation vector fed to ACT.</p>
+        <p>This sidesteps ResNet entirely for the location signal — the visual encoder still processes the image, but object position is now also provided as clean, low-dimensional state rather than implicit in pixels. The detector is trained automatically from 200 annotated frames per task, with no manual feature engineering.</p>
       </div>
     </div>
+
+    <!-- Annotation -->
+    <h3 class="subsection-title">Annotation</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
+      <div class="fig-placeholder" data-fig="yolo-car-annotation">
+        <span class="fig-placeholder-label">Car — OBB annotations</span>
+        <span class="fig-placeholder-hint">Copy <code>yolo-car-annotation.png</code> → <code>docs/assets/img/</code></span>
+      </div>
+      <div class="fig-placeholder" data-fig="yolo-pen-annotation">
+        <span class="fig-placeholder-label">Pen — OBB annotations</span>
+        <span class="fig-placeholder-hint">Copy <code>yolo-pen-annotation.png</code> → <code>docs/assets/img/</code></span>
+      </div>
+    </div>
+    <p class="fig-caption">Oriented bounding boxes on training frames. Two classes per task: <em>source</em> (toy car / red pen) and <em>target</em> (drop zone / cup). Annotations were created with the Roboflow labeling tool and exported in YOLO-OBB format.</p>
 
     <!-- YOLO Training Results -->
     <h3 class="subsection-title">YOLO Model Performance</h3>
-    <div class="yolo-train-grid">
-      <div>
-        <canvas id="chartYoloMAP" height="260"></canvas>
-      </div>
-      <div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div class="fig-placeholder" data-fig="yolo-car-annotation">
-            <span class="fig-placeholder-label">Car OBB annotations</span>
-            <span class="fig-placeholder-hint">Copy <code>yolo-car-annotation.png</code> → <code>docs/assets/img/</code></span>
-          </div>
-          <div class="fig-placeholder" data-fig="yolo-pen-annotation">
-            <span class="fig-placeholder-label">Pen OBB annotations</span>
-            <span class="fig-placeholder-hint">Copy <code>yolo-pen-annotation.png</code> → <code>docs/assets/img/</code></span>
-          </div>
-        </div>
-        <p class="fig-caption">OBB annotations: car (source = toy car, target = drop zone) and pen (source = red pen, target = cup).</p>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr><th>Model</th><th>mAP50</th><th>mAP50-95</th><th>Precision</th><th>Recall</th></tr></thead>
-            <tbody>
-              <tr><td>Car pick-and-place</td><td>0.995</td><td>0.992</td><td>0.993</td><td>1.000</td></tr>
-              <tr><td>Pick pen</td><td>0.995</td><td>0.972</td><td>0.997</td><td>0.997</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- YOLO inference image -->
-    <div class="fig-full-width">
-      <div class="fig-placeholder" data-fig="car_val_batch0_pred">
-        <span class="fig-placeholder-label">YOLO inference — Car task</span>
-        <span class="fig-placeholder-hint">Copy <code>car_val_batch0_pred.jpg</code> → <code>docs/assets/img/</code></span>
-      </div>
-      <div class="fig-placeholder" style="margin-top:8px" data-fig="pen_val_batch0_pred">
-        <span class="fig-placeholder-label">YOLO inference — Pen task</span>
-        <span class="fig-placeholder-hint">Copy <code>pen_val_batch0_pred.jpg</code> → <code>docs/assets/img/</code></span>
-      </div>
-      <p class="fig-caption">Qualitative YOLOv8-OBB inference on frames from car (top) and pen (bottom) episodes. Source in blue, target in cyan. Failures occur mainly when the robot arm occludes the object.</p>
+    <p style="margin-bottom:12px;color:#4b5563;font-size:.95rem">Both detectors converge within 50 epochs and reach near-perfect metrics on the validation split — detection quality is not a bottleneck for the downstream policy experiment.</p>
+    <div class="table-wrap" style="max-width:520px">
+      <table class="data-table">
+        <thead><tr><th>Task</th><th>mAP50</th><th>mAP50-95</th><th>Precision</th><th>Recall</th></tr></thead>
+        <tbody>
+          <tr><td>Car pick-and-place</td><td>0.995</td><td>0.992</td><td>0.993</td><td>1.000</td></tr>
+          <tr><td>Pick pen</td><td>0.995</td><td>0.972</td><td>0.997</td><td>0.997</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Results -->
@@ -622,7 +607,7 @@
       <div class="exp-side">
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Task</th><th>Model</th><th>Episodes</th><th>In-Sample</th><th>Out-of-Sample</th></tr></thead>
+            <thead><tr><th>Task</th><th>Model</th><th>Ep.</th><th>In-Sample</th><th>OOS</th></tr></thead>
             <tbody>
               <tr><td rowspan="3">Car</td><td>Baseline</td><td>50</td><td>0.583</td><td>—</td></tr>
               <tr><td>Baseline</td><td>96</td><td>0.854</td><td>0.194</td></tr>
@@ -632,16 +617,15 @@
             </tbody>
           </table>
         </div>
-        <!-- YOLO videos -->
         <div class="video-pair video-pair-col">
           <div class="video-card">
-            <div class="video-placeholder video-placeholder-sm" data-video="yolo_car.mp4">
+            <div class="video-placeholder" data-video="yolo_car.mp4">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
               <span>YOLO-aug car rollout</span>
             </div>
           </div>
           <div class="video-card">
-            <div class="video-placeholder video-placeholder-sm" data-video="yolo_pen.mp4">
+            <div class="video-placeholder" data-video="yolo_pen.mp4">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
               <span>YOLO-aug pen rollout</span>
             </div>
@@ -650,39 +634,13 @@
       </div>
     </div>
 
-    <div class="finding-box finding-red">
-      <strong>Key finding:</strong> Despite near-perfect YOLO detection, the augmented policies underperform baselines on both tasks. For pen, in-sample success drops from 50% to 17.5%, with zero out-of-sample success. The approach is sound; the failure modes are addressable.
+    <div class="finding-box">
+      <strong>Key finding:</strong> Despite near-perfect detection, augmented policies underperform baselines on both tasks — in-sample success for pen drops from 50% to 17.5%, with zero out-of-sample success. The approach is theoretically sound; the failure modes below are concrete and addressable.
     </div>
 
-    <!-- Discussion / failure table -->
-    <h3 class="subsection-title">Failure Analysis &amp; Proposed Fixes</h3>
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead><tr><th>Failure Mode</th><th>Explanation</th><th>Proposed Fix</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Detection noise &amp; jitter</td>
-            <td>OBB centroids jitter between frames; occasional missed detections create sparse, noisy signal.</td>
-            <td>Feature dropout during ACT training; reject low-confidence detections; replace YOLO with a more stable model.</td>
-          </tr>
-          <tr>
-            <td>Redundancy with visual stream</td>
-            <td>ResNet already encodes the camera image. YOLO provides the same information in a different format — potentially conflicting signals.</td>
-            <td>Ablate by removing ResNet and relying on OBB state only, to test the contribution of explicit coordinates.</td>
-          </tr>
-          <tr>
-            <td>Sparse joint-state coverage</td>
-            <td>With 50 episodes, the joint distribution of (joints, YOLO coordinates) is thinly populated.</td>
-            <td>Collect more diverse demonstrations.</td>
-          </tr>
-          <tr>
-            <td>Higher-dimensional state, same data</td>
-            <td>Adding OBB coordinates expands the observation space without adding data — mirrors the Large model collapse in Experiment 2.</td>
-            <td>Collect a higher volume of demonstrations proportional to the expanded state dimension.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- Discussion / failure summary -->
+    <h3 class="subsection-title">Failure Analysis</h3>
+    <p style="color:#4b5563;font-size:.95rem;line-height:1.7">Three factors likely explain the degradation: <strong>(1) Detection jitter</strong> — OBB centroids fluctuate between frames and occasional missed detections introduce noisy state; <strong>(2) Redundant signal</strong> — ResNet already encodes the scene, so appending pixel-level coordinates may create conflicting rather than complementary representations; <strong>(3) Curse of dimensionality</strong> — expanding the state vector without a proportional increase in demonstrations thins the joint distribution, echoing the large-model collapse seen in Experiment 2. Proposed mitigations: feature dropout on YOLO inputs during training, ablating the ResNet stream to isolate the coordinate signal, and collecting more diverse demonstrations.</p>
 
   </div>
 </section>
@@ -692,15 +650,6 @@
   <div class="container">
     <h2 class="section-title">Resources</h2>
     <div class="card-grid card-grid-4">
-
-      <a href="#" id="link-paper" class="resource-card" target="_blank" rel="noopener">
-        <div class="resource-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        </div>
-        <h4>Paper</h4>
-        <p>Full report with background, experiments, and results.</p>
-        <span class="resource-link">Read PDF ↗</span>
-      </a>
 
       <a href="https://github.com/Jonathm126/IDC_Project-Sim_Real_Sim" target="_blank" rel="noopener" class="resource-card">
         <div class="resource-icon">
@@ -765,6 +714,6 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="assets/js/main.js?v=2"></script>
+<script src="assets/js/main.js?v=3"></script>
 </body>
 </html>

@@ -173,40 +173,6 @@ function barOpts(extra = {}) { return mergeDeep(chartDefaults, extra); }
   });
 })();
 
-/* ── 6. YOLO mAP Chart ──────────────────────────────────────────── */
-(function() {
-  const ctx = document.getElementById('chartYoloMAP');
-  if (!ctx) return;
-  // Approximate mAP50 and mAP50-95 curves from paper (0→200 epochs)
-  const epochs = [0, 10, 20, 30, 40, 50, 75, 100, 125, 150, 175, 200];
-  const carMAP50    = [0.15, 0.55, 0.82, 0.91, 0.96, 0.985, 0.990, 0.992, 0.993, 0.993, 0.994, 0.995];
-  const carMAP5095  = [0.05, 0.25, 0.55, 0.73, 0.85, 0.91,  0.95,  0.97,  0.980, 0.988, 0.990, 0.992];
-  const penMAP50    = [0.12, 0.52, 0.79, 0.90, 0.95, 0.985, 0.990, 0.992, 0.993, 0.994, 0.995, 0.995];
-  const penMAP5095  = [0.04, 0.22, 0.52, 0.70, 0.82, 0.88,  0.92,  0.950, 0.960, 0.965, 0.970, 0.972];
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: epochs,
-      datasets: [
-        { label: 'Car — mAP50',    data: carMAP50,   borderColor: CAR_BORDER, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 3, tension: 0.3 },
-        { label: 'Car — mAP50-95', data: carMAP5095, borderColor: CAR_COLOR,  backgroundColor: 'transparent', borderWidth: 2, pointRadius: 3, tension: 0.3, borderDash: [5,3] },
-        { label: 'Pen — mAP50',    data: penMAP50,   borderColor: PEN_BORDER, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 3, tension: 0.3 },
-        { label: 'Pen — mAP50-95', data: penMAP5095, borderColor: PEN_COLOR,  backgroundColor: 'transparent', borderWidth: 2, pointRadius: 3, tension: 0.3, borderDash: [5,3] }
-      ]
-    },
-    options: mergeDeep(chartDefaults, {
-      plugins: {
-        title: { display: true, text: 'YOLO Validation mAP (0→200 epochs)', font: { family: 'Inter', size: 13, weight: '600' } },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%` } }
-      },
-      scales: {
-        x: { title: { display: true, text: 'Epoch', font: { family: 'Inter', size: 11 } } }
-      }
-    })
-  });
-})();
-
 /* ── 7. YOLO vs Baseline Results ────────────────────────────────── */
 (function() {
   const ctx = document.getElementById('chartYoloResults');
