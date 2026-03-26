@@ -506,8 +506,8 @@
         <span class="stat-label">Out-of-sample (car)</span>
       </div>
       <div class="motivation-text">
-        <p><strong>The problem:</strong> ACT learns pixel patterns, not geometry. Moving the object 2–3 cm outside the training grid cuts success from 85% to 19% — not overfitting, but a lack of spatial coverage. The policy has no representation of <em>where</em> the object is.</p>
-        <p><strong>The hypothesis:</strong> If we explicitly provide object coordinates via a detector, ACT should generalize to new positions without collecting new demonstrations.</p>
+        <p>ACT learns pixel patterns, not geometry. 85% in-sample but only 19% OOD — the policy has no explicit representation of <em>where</em> the object is.</p>
+        <p><strong>Can an auxiliary object detector supply explicit coordinates and close this gap — without collecting more demonstrations?</strong></p>
       </div>
     </div>
 
@@ -576,8 +576,9 @@
     </div>
 
     <!-- Annotation -->
-    <h3 class="subsection-title">Annotation</h3>
-    <p style="margin-bottom:12px;color:#4b5563;font-size:.95rem">The detector was trained on 200 labeled frames per task. Each frame has two oriented bounding-box classes: the <em>manipulated object</em> (car or pen) and the <em>target zone</em> (drop area or cup). Annotations were created in Roboflow and exported in YOLO-OBB format.</p>
+    <h3 class="subsection-title">Annotation &amp; YOLO Training</h3>
+    <p style="margin-bottom:8px;color:#374151;font-size:.95rem">A separate YOLO-OBB model was trained for each task. Frames were sampled from the training datasets, hand-annotated with oriented bounding boxes in Roboflow, and the detector was validated on held-out frames before being connected to the ACT observation pipeline.</p>
+    <p style="margin-bottom:12px;color:#4b5563;font-size:.92rem">Each model detects two classes: the <em>manipulated object</em> (toy car or red pen) and the <em>target zone</em> (drop area or cup). 200 frames per task were labeled and exported in YOLO-OBB format.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
       <div class="fig-placeholder" data-fig="yolo-car-annotation">
         <span class="fig-placeholder-label">Car — OBB annotations</span>
@@ -605,12 +606,13 @@
 
     <!-- Results -->
     <h3 class="subsection-title">Results</h3>
+    <p style="margin-bottom:16px;color:#374151;font-size:.95rem">The YOLO-augmented policy was trained on the same 50-episode datasets as the baseline. At inference, detected object coordinates are injected into the ACT state vector alongside the joint positions. Both in-sample and out-of-sample positions were evaluated.</p>
     <div class="exp-content">
       <div class="exp-chart-wrap">
         <canvas id="chartYoloResults" height="280"></canvas>
       </div>
       <div class="exp-side">
-        <p style="font-size:.95rem;color:#374151;line-height:1.7">YOLO augmentation was evaluated against the 50-episode baseline on both tasks, comparing in-sample and out-of-sample success rates.</p>
+        <p style="font-size:.95rem;color:#374151;line-height:1.7">Despite near-perfect detection metrics, augmentation <em>hurts</em> both tasks. Car in-sample is similar (56% vs 58%), but pen collapses from 50% to 17.5% — and out-of-sample success remains near zero.</p>
         <div class="table-wrap" style="margin-top:12px">
           <table class="data-table">
             <thead><tr><th>Task</th><th>Model</th><th>In-Sample</th><th>OOS</th></tr></thead>
@@ -650,15 +652,21 @@
 
     <!-- Failure analysis -->
     <h3 class="subsection-title">Why Did It Fail?</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:8px">
-      <div class="finding-box" style="margin:0">
-        <strong>Detection jitter</strong><br>OBB centroids fluctuate frame-to-frame. Noisy coordinates corrupt the observation signal the policy relies on.
+    <div class="failure-grid">
+      <div class="failure-card">
+        <h4>Detection Jitter</h4>
+        <p>OBB centroids fluctuate frame-to-frame even when the object is stationary. Noisy coordinates corrupt the observation signal and destabilize the policy's action predictions.</p>
+        <span class="fix">→ Fix: smooth coordinates with a temporal filter before injection.</span>
       </div>
-      <div class="finding-box" style="margin:0">
-        <strong>Redundant signal</strong><br>ResNet already encodes spatial context from pixels. Appending coordinates may create conflicting rather than complementary inputs.
+      <div class="failure-card">
+        <h4>Redundant Signal</h4>
+        <p>The ResNet backbone already encodes spatial context from raw pixels. Appending explicit coordinates may introduce conflicting rather than complementary inputs, confusing the policy.</p>
+        <span class="fix">→ Fix: ablate the visual encoder and use coordinates as the primary spatial signal.</span>
       </div>
-      <div class="finding-box" style="margin:0">
-        <strong>Curse of dimensionality</strong><br>Expanding the state vector without more demos thins the training distribution — the same collapse seen with larger models.
+      <div class="failure-card">
+        <h4>Curse of Dimensionality</h4>
+        <p>Expanding the state vector increases the space the policy must cover. With the same 50-episode dataset, the added dimensions thin the training distribution — the same collapse seen with larger models.</p>
+        <span class="fix">→ Fix: collect additional demos with the augmented observation space.</span>
       </div>
     </div>
 

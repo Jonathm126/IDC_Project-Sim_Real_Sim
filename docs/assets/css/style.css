@@ -415,11 +415,13 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .failure-card {
   background: var(--bg); border: 1px solid var(--border);
+  border-top: 3px solid var(--danger);
   border-radius: var(--radius-lg); padding: 16px;
-  box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 8px;
+  box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 6px;
 }
-.failure-card h4 { font-size: .9rem; font-weight: 700; }
+.failure-card h4 { font-size: .9rem; font-weight: 700; color: var(--danger); }
 .failure-card p  { font-size: .82rem; color: var(--text-muted); line-height: 1.5; flex: 1; }
+.failure-card .fix { font-size: .8rem; color: var(--success); font-style: italic; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
 
 /* ── Summary Table ───────────────────────────────────────────────── */
 .summary-table-wrap { margin-top: 48px; }
