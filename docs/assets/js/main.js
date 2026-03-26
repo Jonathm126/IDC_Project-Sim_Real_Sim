@@ -82,7 +82,7 @@ function barOpts(extra = {}) { return mergeDeep(chartDefaults, extra); }
       scales: {
         x: {
           type: 'logarithmic', min: 18, max: 120,
-          afterBuildTicks: scale => { scale.ticks = [{value:25},{value:48},{value:50},{value:75},{value:96}]; },
+          afterBuildTicks: scale => { scale.ticks = [{value:25},{value:50},{value:75},{value:96}]; },
           ticks: { callback: v => v + ' ep' },
           title: { display: true, text: 'Training episodes', font: { family: 'Inter', size: 11 }, color: '#6b7280' }
         }
