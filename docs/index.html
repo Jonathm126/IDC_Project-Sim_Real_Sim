@@ -606,29 +606,27 @@
     <!-- Results -->
     <h3 class="subsection-title">Results</h3>
     <p style="margin-bottom:16px;color:#374151;font-size:.95rem">The YOLO-augmented policy was trained on the same 50-episode datasets as the baseline. At inference, detected object coordinates are injected into the ACT state vector alongside the joint positions. Both in-sample and out-of-sample positions were evaluated.</p>
+
     <div class="exp-content">
       <div class="exp-chart-wrap">
         <canvas id="chartYoloResults" height="280"></canvas>
       </div>
       <div class="exp-side">
-        <p style="font-size:.95rem;color:#374151;line-height:1.7">Despite near-perfect detection metrics, augmentation <em>hurts</em> both tasks. Car in-sample is similar (56% vs 58%), but pen collapses from 50% to 17.5% — and out-of-sample success remains near zero.</p>
-        <div class="table-wrap" style="margin-top:12px">
-          <table class="data-table">
-            <thead><tr><th>Task</th><th>Model</th><th>In-Sample</th><th>OOS</th></tr></thead>
-            <tbody>
-              <tr><td rowspan="2">Car</td><td>Baseline (50 ep)</td><td>0.583</td><td>—</td></tr>
-              <tr><td>YOLO-aug (50 ep)</td><td>0.563</td><td>0.167</td></tr>
-              <tr><td rowspan="2">Pen</td><td>Baseline (50 ep)</td><td>0.500</td><td>—</td></tr>
-              <tr><td>YOLO-aug (50 ep)</td><td>0.175</td><td>0.000</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p style="font-size:.88rem;color:#6b7280;margin-top:8px">OOS = out-of-sample positions not seen during training. Baseline OOS not measured (same model as Experiment 04).</p>
+        <table class="data-table">
+          <thead><tr><th>Task</th><th>Model</th><th>In-Sample</th><th>OOS</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="2">Car</td><td>Baseline</td><td>0.583</td><td>—</td></tr>
+            <tr><td>YOLO-aug</td><td>0.563</td><td>0.167</td></tr>
+            <tr><td rowspan="2">Pen</td><td>Baseline</td><td>0.500</td><td>—</td></tr>
+            <tr><td>YOLO-aug</td><td>0.175</td><td>0.000</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:.82rem;color:#6b7280;margin-top:8px">All models trained on 50 episodes. OOS = out-of-sample. Baseline OOS not measured (same as Exp. 04).</p>
       </div>
     </div>
 
     <div class="finding-box">
-      <strong>Key finding:</strong> Despite near-perfect object detection, the augmented policy underperforms the baseline on both tasks — car in-sample stays similar (56% vs 58%) but pen collapses from 50% to 17.5%, with zero OOS success. Adding coordinates hurts more than it helps.
+      <strong>Key finding:</strong> Despite near-perfect detection, augmentation hurts both tasks — pen collapses from 50% to 17.5% and OOS success remains near zero. Adding coordinates hurts more than it helps.
     </div>
 
     <!-- Rollout videos -->
