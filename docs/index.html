@@ -367,23 +367,21 @@
         <div class="exp-chart-wrap" style="max-width:480px">
           <canvas id="chartOOD" height="260"></canvas>
         </div>
-        <div class="exp-side">
-          <div class="fig-placeholder" data-fig="in-out-sample-eval">
-            <span class="fig-placeholder-label">In-sample vs. out-of-sample positions</span>
-            <span class="fig-placeholder-hint">Copy <code>in-out-sample-eval.png</code> → <code>docs/assets/img/</code></span>
+        <div class="exp-side" style="display:flex;flex-direction:column;gap:16px">
+          <div>
+            <div class="fig-placeholder" data-fig="in-out-sample-eval">
+              <span class="fig-placeholder-label">In-sample vs. out-of-sample positions</span>
+              <span class="fig-placeholder-hint">Copy <code>in-out-sample-eval.png</code> → <code>docs/assets/img/</code></span>
+            </div>
+            <p class="fig-caption">Blue: training poses. Red: OOD evaluation poses (between positions or diagonal orientations).</p>
           </div>
-          <p class="fig-caption">Blue: training poses. Red: OOD evaluation poses (between positions or diagonal orientations).</p>
-        </div>
-      </div>
-
-      <!-- OOD video -->
-      <div class="video-pair">
-        <div class="video-card">
-          <div class="video-placeholder" data-video="oos_failure_car.mp4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-            <span>OOD failure — car task</span>
+          <div>
+            <div class="video-placeholder" data-video="oos_failure_car.mp4" style="border-radius:12px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+              <span>OOD failure — car task</span>
+            </div>
+            <p class="fig-caption">Out-of-sample pose: policy fails to adapt despite converging on in-sample configurations.</p>
           </div>
-          <p class="fig-caption">Out-of-sample pose: policy fails to adapt despite converging on in-sample configurations.</p>
         </div>
       </div>
 
