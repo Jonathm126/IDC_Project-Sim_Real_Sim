@@ -244,7 +244,7 @@
         <span class="exp-number">01</span>
         <div>
           <h3>Effect of Dataset Size</h3>
-          <p class="exp-rationale">How much does the number of demonstrations matter? ACT is an offline IL method — it memorizes the training distribution. We train on 25%, 50%, and 100% of available episodes per task.</p>
+          <p class="exp-rationale">How much does the number of demonstrations matter? ACT is an offline IL method — it memorizes the training distribution. We train on 25, 48, and 96 episodes for the car task and 25, 50, and 75 episodes for the pen task.</p>
         </div>
       </div>
 
@@ -254,14 +254,14 @@
         </div>
         <div class="exp-side">
           <table class="data-table data-table-mini">
-            <thead><tr><th>Task</th><th>Fraction</th><th>Success</th></tr></thead>
+            <thead><tr><th>Task</th><th>Episodes</th><th>Success</th></tr></thead>
             <tbody>
-              <tr class="row-car"><td>Car</td><td>25%</td><td>35.4%</td></tr>
-              <tr class="row-car"><td>Car</td><td>50%</td><td>58.3%</td></tr>
-              <tr class="row-car"><td>Car</td><td>100%</td><td><strong>85.4%</strong></td></tr>
-              <tr class="row-pen"><td>Pen</td><td>25%</td><td>10.0%</td></tr>
-              <tr class="row-pen"><td>Pen</td><td>50%</td><td>50.0%</td></tr>
-              <tr class="row-pen"><td>Pen</td><td>100%</td><td><strong>55.0%</strong></td></tr>
+              <tr class="row-car"><td>Car</td><td>25</td><td>35.4%</td></tr>
+              <tr class="row-car"><td>Car</td><td>48</td><td>58.3%</td></tr>
+              <tr class="row-car"><td>Car</td><td>96</td><td><strong>85.4%</strong></td></tr>
+              <tr class="row-pen"><td>Pen</td><td>25</td><td>10.0%</td></tr>
+              <tr class="row-pen"><td>Pen</td><td>50</td><td>50.0%</td></tr>
+              <tr class="row-pen"><td>Pen</td><td>75</td><td><strong>55.0%</strong></td></tr>
             </tbody>
           </table>
         </div>

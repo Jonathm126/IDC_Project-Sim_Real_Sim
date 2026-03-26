@@ -63,13 +63,13 @@ function barOpts(extra = {}) { return mergeDeep(chartDefaults, extra); }
       datasets: [
         {
           label: 'Car Pick-and-Place',
-          data: [{x: 25, y: 0.354}, {x: 50, y: 0.583}, {x: 100, y: 0.854}],
+          data: [{x: 25, y: 0.354}, {x: 48, y: 0.583}, {x: 96, y: 0.854}],
           borderColor: CAR_BORDER, backgroundColor: CAR_COLOR,
           pointRadius: 6, pointHoverRadius: 8, borderWidth: 2.5, tension: 0, fill: false
         },
         {
           label: 'Pick Pen',
-          data: [{x: 25, y: 0.100}, {x: 50, y: 0.500}, {x: 100, y: 0.550}],
+          data: [{x: 25, y: 0.100}, {x: 50, y: 0.500}, {x: 75, y: 0.550}],
           borderColor: PEN_BORDER, backgroundColor: PEN_COLOR,
           pointRadius: 6, pointHoverRadius: 8, borderWidth: 2.5, tension: 0, fill: false
         }
@@ -81,10 +81,10 @@ function barOpts(extra = {}) { return mergeDeep(chartDefaults, extra); }
       },
       scales: {
         x: {
-          type: 'logarithmic', min: 18, max: 140,
-          afterBuildTicks: scale => { scale.ticks = [{value:25},{value:50},{value:100}]; },
-          ticks: { callback: v => v + '%' },
-          title: { display: true, text: 'Dataset fraction', font: { family: 'Inter', size: 11 }, color: '#6b7280' }
+          type: 'logarithmic', min: 18, max: 120,
+          afterBuildTicks: scale => { scale.ticks = [{value:25},{value:48},{value:50},{value:75},{value:96}]; },
+          ticks: { callback: v => v + ' ep' },
+          title: { display: true, text: 'Training episodes', font: { family: 'Inter', size: 11 }, color: '#6b7280' }
         }
       }
     })
