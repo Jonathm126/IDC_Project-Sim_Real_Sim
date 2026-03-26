@@ -357,7 +357,7 @@
         <span class="exp-number">04</span>
         <div>
           <h3>Distribution Shift: In-Sample vs. Out-of-Sample</h3>
-          <p class="exp-rationale">We re-evaluate the 96-episode car model on poses <em>never seen during training</em> (objects placed between discrete training positions, or at diagonal orientations). We also compare 50k and 100k checkpoints to test whether overfitting causes the OOD failure.</p>
+          <p class="exp-rationale">We re-evaluate the 96-episode car model on poses <em>never seen during training</em> (objects placed between discrete training positions, or at diagonal orientations). We also compare 50k and 100k checkpoints to test whether overfitting causes the OOD failure. The pen task was not evaluated out-of-distribution: with a 50% in-sample success rate, the baseline was too weak to draw meaningful OOD conclusions.</p>
         </div>
       </div>
 
@@ -383,11 +383,11 @@
           <p class="fig-caption">Car: policy fails at an unseen object position.</p>
         </div>
         <div class="video-card">
-          <div class="video-placeholder" data-video="oos_failure_pen.mp4">
+          <div class="video-placeholder" data-video="oos_success_car.mp4">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-            <span>OOD failure — pen task</span>
+            <span>OOD success — car task</span>
           </div>
-          <p class="fig-caption">Pen: policy fails to generalize to out-of-distribution positions.</p>
+          <p class="fig-caption">Car: one of the rare successes at an unseen object position (19% success rate).</p>
         </div>
       </div>
 
