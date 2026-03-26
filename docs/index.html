@@ -289,16 +289,14 @@
           <canvas id="chartModelSize" height="260"></canvas>
         </div>
         <div class="exp-side">
-          <div class="mini-table">
-            <table class="data-table data-table-mini">
-              <thead><tr><th>Size</th><th>Params</th><th>VRAM</th></tr></thead>
-              <tbody>
-                <tr><td>Small (4,1)</td><td>43M</td><td>0.9 GB</td></tr>
-                <tr><td>Medium (6,2)</td><td>68.8M</td><td>1.4 GB</td></tr>
-                <tr><td>Large (8,4)</td><td>103M</td><td>2.1 GB</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <table class="data-table data-table-mini">
+            <thead><tr><th>Size</th><th>Params</th><th>VRAM</th></tr></thead>
+            <tbody>
+              <tr><td>Small (4,1)</td><td>43M</td><td>0.9 GB</td></tr>
+              <tr><td>Medium (6,2)</td><td>68.8M</td><td>1.4 GB</td></tr>
+              <tr><td>Large (8,4)</td><td>103M</td><td>2.1 GB</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -367,21 +365,29 @@
         <div class="exp-chart-wrap" style="max-width:480px">
           <canvas id="chartOOD" height="260"></canvas>
         </div>
-        <div class="exp-side" style="display:flex;flex-direction:column;gap:16px">
-          <div>
-            <div class="fig-placeholder" data-fig="in-out-sample-eval">
-              <span class="fig-placeholder-label">In-sample vs. out-of-sample positions</span>
-              <span class="fig-placeholder-hint">Copy <code>in-out-sample-eval.png</code> → <code>docs/assets/img/</code></span>
-            </div>
-            <p class="fig-caption">Blue: training poses. Red: OOD evaluation poses (between positions or diagonal orientations).</p>
+        <div class="exp-side">
+          <div class="fig-placeholder" data-fig="in-out-sample-eval">
+            <span class="fig-placeholder-label">In-sample vs. out-of-sample positions</span>
+            <span class="fig-placeholder-hint">Copy <code>in-out-sample-eval.png</code> → <code>docs/assets/img/</code></span>
           </div>
-          <div>
-            <div class="video-placeholder" data-video="oos_failure_car.mp4" style="border-radius:12px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-              <span>OOD failure — car task</span>
-            </div>
-            <p class="fig-caption">Out-of-sample pose: policy fails to adapt despite converging on in-sample configurations.</p>
+          <p class="fig-caption">Blue: training poses. Red: OOD evaluation poses (between positions or diagonal orientations).</p>
+        </div>
+      </div>
+
+      <div class="video-pair">
+        <div class="video-card">
+          <div class="video-placeholder" data-video="oos_failure_car.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>OOD failure — car task</span>
           </div>
+          <p class="fig-caption">Car: policy fails at an unseen object position.</p>
+        </div>
+        <div class="video-card">
+          <div class="video-placeholder" data-video="oos_failure_pen.mp4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            <span>OOD failure — pen task</span>
+          </div>
+          <p class="fig-caption">Pen: policy fails to generalize to out-of-distribution positions.</p>
         </div>
       </div>
 
@@ -500,7 +506,8 @@
         <span class="stat-label">Out-of-sample (car)</span>
       </div>
       <div class="motivation-text">
-        <p>The best ACT model achieves 85% in-sample but collapses to 19% on unseen object positions — suggesting the policy memorizes the training distribution rather than understanding the task geometrically. We ask: can feeding the robot an explicit, symbolic description of where the object <em>is</em> close this gap without collecting more demonstrations?</p>
+        <p><strong>The problem:</strong> ACT learns pixel patterns, not geometry. Moving the object 2–3 cm outside the training grid cuts success from 85% to 19% — not overfitting, but a lack of spatial coverage. The policy has no representation of <em>where</em> the object is.</p>
+        <p><strong>The hypothesis:</strong> If we explicitly provide object coordinates via a detector, ACT should generalize to new positions without collecting new demonstrations.</p>
       </div>
     </div>
 
@@ -564,13 +571,13 @@
         <p class="fig-caption">Top-camera → YOLOv8-OBB → centroid (u,v,θ) for source and target, appended to the joint-state vector before ACT. The RGB stream feeds into Extended Obs. unchanged.</p>
       </div>
       <div class="yolo-approach-text">
-        <p>A fine-tuned YOLOv8s-OBB detector runs on the top camera at every timestep, outputting the oriented bounding-box centroid (u, v) and angle θ for both the source object and the target zone. These six coordinates are concatenated with the 6-DoF joint state to form an augmented observation vector fed to ACT.</p>
-        <p>This sidesteps ResNet entirely for the location signal — the visual encoder still processes the image, but object position is now also provided as clean, low-dimensional state rather than implicit in pixels. The detector is trained automatically from 200 annotated frames per task, with no manual feature engineering.</p>
+        <p>At each timestep, a YOLOv8-OBB detector runs on the top camera and outputs the centroid and orientation (u, v, θ) of both the source object and the target zone. These 6 coordinates are appended to the 6-DoF joint state, forming an augmented observation fed to ACT. The RGB stream is unchanged — the detector adds explicit spatial information rather than replacing the visual input.</p>
       </div>
     </div>
 
     <!-- Annotation -->
     <h3 class="subsection-title">Annotation</h3>
+    <p style="margin-bottom:12px;color:#4b5563;font-size:.95rem">The detector was trained on 200 labeled frames per task. Each frame has two oriented bounding-box classes: the <em>manipulated object</em> (car or pen) and the <em>target zone</em> (drop area or cup). Annotations were created in Roboflow and exported in YOLO-OBB format.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
       <div class="fig-placeholder" data-fig="yolo-car-annotation">
         <span class="fig-placeholder-label">Car — OBB annotations</span>
@@ -603,42 +610,57 @@
         <canvas id="chartYoloResults" height="280"></canvas>
       </div>
       <div class="exp-side">
-        <div class="table-wrap">
+        <p style="font-size:.95rem;color:#374151;line-height:1.7">YOLO augmentation was evaluated against the 50-episode baseline on both tasks, comparing in-sample and out-of-sample success rates.</p>
+        <div class="table-wrap" style="margin-top:12px">
           <table class="data-table">
-            <thead><tr><th>Task</th><th>Model</th><th>Ep.</th><th>In-Sample</th><th>OOS</th></tr></thead>
+            <thead><tr><th>Task</th><th>Model</th><th>In-Sample</th><th>OOS</th></tr></thead>
             <tbody>
-              <tr><td rowspan="3">Car</td><td>Baseline</td><td>50</td><td>0.583</td><td>—</td></tr>
-              <tr><td>Baseline</td><td>96</td><td>0.854</td><td>0.194</td></tr>
-              <tr><td>YOLO-aug</td><td>50</td><td>0.563</td><td>0.167</td></tr>
-              <tr><td rowspan="2">Pen</td><td>Baseline</td><td>50</td><td>0.500</td><td>—</td></tr>
-              <tr><td>YOLO-aug</td><td>50</td><td>0.175</td><td>0.000</td></tr>
+              <tr><td rowspan="2">Car</td><td>Baseline (50 ep)</td><td>0.583</td><td>—</td></tr>
+              <tr><td>YOLO-aug (50 ep)</td><td>0.563</td><td>0.167</td></tr>
+              <tr><td rowspan="2">Pen</td><td>Baseline (50 ep)</td><td>0.500</td><td>—</td></tr>
+              <tr><td>YOLO-aug (50 ep)</td><td>0.175</td><td>0.000</td></tr>
             </tbody>
           </table>
         </div>
-        <div class="video-pair video-pair-col">
-          <div class="video-card">
-            <div class="video-placeholder" data-video="yolo_car.mp4">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-              <span>YOLO-aug car rollout</span>
-            </div>
-          </div>
-          <div class="video-card">
-            <div class="video-placeholder" data-video="yolo_pen.mp4">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-              <span>YOLO-aug pen rollout</span>
-            </div>
-          </div>
-        </div>
+        <p style="font-size:.88rem;color:#6b7280;margin-top:8px">OOS = out-of-sample positions not seen during training. Baseline OOS not measured (same model as Experiment 04).</p>
       </div>
     </div>
 
     <div class="finding-box">
-      <strong>Key finding:</strong> Despite near-perfect detection, augmented policies underperform baselines on both tasks — in-sample success for pen drops from 50% to 17.5%, with zero out-of-sample success. The approach is theoretically sound; the failure modes below are concrete and addressable.
+      <strong>Key finding:</strong> Despite near-perfect object detection, the augmented policy underperforms the baseline on both tasks — car in-sample stays similar (56% vs 58%) but pen collapses from 50% to 17.5%, with zero OOS success. Adding coordinates hurts more than it helps.
     </div>
 
-    <!-- Discussion / failure summary -->
-    <h3 class="subsection-title">Failure Analysis</h3>
-    <p style="color:#4b5563;font-size:.95rem;line-height:1.7">Three factors likely explain the degradation: <strong>(1) Detection jitter</strong> — OBB centroids fluctuate between frames and occasional missed detections introduce noisy state; <strong>(2) Redundant signal</strong> — ResNet already encodes the scene, so appending pixel-level coordinates may create conflicting rather than complementary representations; <strong>(3) Curse of dimensionality</strong> — expanding the state vector without a proportional increase in demonstrations thins the joint distribution, echoing the large-model collapse seen in Experiment 2. Proposed mitigations: feature dropout on YOLO inputs during training, ablating the ResNet stream to isolate the coordinate signal, and collecting more diverse demonstrations.</p>
+    <!-- Rollout videos -->
+    <div class="video-pair" style="margin-top:20px">
+      <div class="video-card">
+        <div class="video-placeholder" data-video="yolo_car.mp4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>YOLO-aug — car rollout</span>
+        </div>
+        <p class="fig-caption">Car task: YOLO-augmented policy rollout.</p>
+      </div>
+      <div class="video-card">
+        <div class="video-placeholder" data-video="yolo_pen.mp4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <span>YOLO-aug — pen rollout</span>
+        </div>
+        <p class="fig-caption">Pen task: augmented policy struggles to complete insertion.</p>
+      </div>
+    </div>
+
+    <!-- Failure analysis -->
+    <h3 class="subsection-title">Why Did It Fail?</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:8px">
+      <div class="finding-box" style="margin:0">
+        <strong>Detection jitter</strong><br>OBB centroids fluctuate frame-to-frame. Noisy coordinates corrupt the observation signal the policy relies on.
+      </div>
+      <div class="finding-box" style="margin:0">
+        <strong>Redundant signal</strong><br>ResNet already encodes spatial context from pixels. Appending coordinates may create conflicting rather than complementary inputs.
+      </div>
+      <div class="finding-box" style="margin:0">
+        <strong>Curse of dimensionality</strong><br>Expanding the state vector without more demos thins the training distribution — the same collapse seen with larger models.
+      </div>
+    </div>
 
   </div>
 </section>
