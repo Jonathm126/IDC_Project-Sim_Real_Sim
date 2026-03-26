@@ -654,18 +654,15 @@
     <div class="failure-grid">
       <div class="failure-card">
         <h4>Detection Jitter</h4>
-        <p>OBB centroids fluctuate frame-to-frame even when the object is stationary. Noisy coordinates corrupt the observation signal and destabilize the policy's action predictions.</p>
-        <span class="fix">→ Fix: smooth coordinates with a temporal filter before injection.</span>
+        <p>OBB centroids fluctuate frame-to-frame. Noisy coordinates corrupt the observation signal even when detection accuracy is high.</p>
       </div>
       <div class="failure-card">
         <h4>Redundant Signal</h4>
-        <p>The ResNet backbone already encodes spatial context from raw pixels. Appending explicit coordinates may introduce conflicting rather than complementary inputs, confusing the policy.</p>
-        <span class="fix">→ Fix: ablate the visual encoder and use coordinates as the primary spatial signal.</span>
+        <p>ResNet already encodes spatial context from pixels. Explicit coordinates may conflict with rather than complement the visual representation.</p>
       </div>
       <div class="failure-card">
         <h4>Curse of Dimensionality</h4>
-        <p>Expanding the state vector increases the space the policy must cover. With the same 50-episode dataset, the added dimensions thin the training distribution — the same collapse seen with larger models.</p>
-        <span class="fix">→ Fix: collect additional demos with the augmented observation space.</span>
+        <p>Expanding the state vector without more demonstrations thins the training distribution — the same collapse seen with larger models.</p>
       </div>
     </div>
 
