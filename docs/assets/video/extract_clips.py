@@ -23,11 +23,12 @@ CAMERA     = "observation.images.top_cam"
 CLIP_MAP = [
     ("car_success_k100.mp4",  "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 12),
     ("pen_success.mp4",       "jonathm126/eval_so101_pick_pen_v4_real_v0",                       75),
-    ("fail_oscillation.mp4",  "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 77),
+    ("fail_oscillation.mp4",  "jonathm126/eval_so101_pick_pen_v5_real_v0",                       15),
+    ("k25_failure.mp4",       "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 77),
     ("fail_mode_collapse.mp4","jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 53),
-    ("fail_drift.mp4",        "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 84),
+    ("fail_drift.mp4",        "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 94),
     ("fail_grasp.mp4",        "jonathm126/eval_so101_pick_pen_v5_real_v0",                       14),
-    ("fail_recovery.mp4",     "jonathm126/eval_so101_pick_pen_v5_real_v0",                       19),
+    ("fail_recovery.mp4",     "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 44),
     # fill in when you have episode indices:
     # ("oos_failure_car.mp4",  "jonathm126/...", ???),
     # ("yolo_car.mp4",         "jonathm126/eval_so101_car_pick_and_place-bbox_yolo_v3-real_v0", ???),
