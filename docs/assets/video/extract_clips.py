@@ -31,9 +31,8 @@ CLIP_MAP = [
     ("fail_recovery.mp4",     "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 44),
     ("oos_failure_car.mp4",  "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 100),
     ("oos_success_car.mp4",  "jonathm126/eval_so101_car_pick_and_place-96_episodes_v0-real_v0", 97),
-    # fill in when you have episode indices:
-    # ("yolo_car.mp4",         "jonathm126/eval_so101_car_pick_and_place-bbox_yolo_v3-real_v0", ???),
-    # ("yolo_pen.mp4",         "jonathm126/eval_so101_pick_pen-bbox_yolo_v0-real_v0", ???),
+    ("yolo_car.mp4",         "jonathm126/eval_so101_car_pick_and_place-bbox-yolo_v3-real_v0", 20),
+    ("yolo_pen.mp4",         "jonathm126/eval_so101_pick_pen-bbox-yolo_v0-real_v0",           2),
 ]
 
 # ── Helpers ────────────────────────────────────────────────────────────────
